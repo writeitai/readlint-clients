@@ -68,3 +68,39 @@ def test_api_errors_and_recovery(monkeypatch, capsys, status, code):
     assert error["code"] == code
     assert error["message"]
     assert "rlk_secret" not in output.err
+
+
+@pytest.mark.parametrize("command", ["check", "evaluate"])
+def test_check_and_evaluate_are_the_same_submission(
+    command, monkeypatch, capsys, tmp_path
+):
+    article = tmp_path / "post.md"
+    article.write_text("# Article")
+    calls = []
+
+    def submit(*args, **kwargs):
+        calls.append(kwargs)
+        return httpx.Response(200, json={"id": "64dfbf5a-2016-41a0-ad7f-b6808929b5ae"})
+
+    monkeypatch.setattr(httpx.Client, "request", submit)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "readlint",
+            command,
+            str(article),
+            "--json",
+            "--api-key",
+            "rlk_test",
+            "--idempotency-key",
+            "same-key",
+        ],
+    )
+    assert main() == 0
+    assert len(calls) == 1
+    assert calls[0]["headers"]["Idempotency-Key"] == "same-key"
+    assert calls[0]["json"]["article"] == "# Article"
+    output = capsys.readouterr()
+    assert json.loads(output.out)["id"] == "64dfbf5a-2016-41a0-ad7f-b6808929b5ae"
+    assert "same-key" in output.err

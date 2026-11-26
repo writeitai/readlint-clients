@@ -4,7 +4,12 @@ readlint.com reviews articles and points out where readers might get lost. It
 flags unexplained terms, missing reasons to care, and ideas that appear out of
 order.
 
-Install and use the [CLI](docs/cli.md) or [Python SDK](docs/python.md) from
+Run `npx readlint.com check article.md` with Node.js 22+ after npm publication,
+or use the public release archive in the [CLI guide](docs/cli.md).
+Python users can use `uvx readlint` after PyPI publication or the versioned wheel.
+
+Install and use the [CLI](docs/cli.md), [Python SDK](docs/python.md), or
+[TypeScript SDK](docs/typescript.md) from
 the public releases. See the [product documentation](https://readlint.com/docs)
 for accounts and the hosted API, and [development notes](docs/development.md)
 for local checks and releases.

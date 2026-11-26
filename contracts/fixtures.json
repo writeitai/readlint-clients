@@ -1,0 +1,47 @@
+{
+  "evaluation": {
+    "id": "64dfbf5a-2016-41a0-ad7f-b6808929b5ae",
+    "title": "An article",
+    "created_at": "2026-11-26T10:00:00Z",
+    "expires_at": "2026-12-26T10:00:00Z",
+    "status": "complete",
+    "error_code": null,
+    "report": {
+      "title": "An article",
+      "description": "",
+      "article_checks": [],
+      "prose_blocks": [],
+      "banned_phrases": [],
+      "omitted_computed_jsx": [],
+      "model": "test",
+      "input_tokens": 12,
+      "expires_at": "2026-12-26T10:00:00Z"
+    }
+  },
+  "page": {
+    "items": [
+      {
+        "id": "64dfbf5a-2016-41a0-ad7f-b6808929b5ae",
+        "title": "An article",
+        "created_at": "2026-11-26T10:00:00Z",
+        "expires_at": "2026-12-26T10:00:00Z",
+        "status": "complete",
+        "error_code": null
+      }
+    ],
+    "next_offset": 5
+  },
+  "device_code": {
+    "device_code": "device-fixture",
+    "user_code": "BCDF-GHJK",
+    "verification_uri": "https://readlint.com/app/device",
+    "verification_uri_complete": "https://readlint.com/app/device?user_code=BCDF-GHJK",
+    "expires_in": 600,
+    "interval": 1
+  },
+  "device_token": {
+    "access_token": "rlk_contract",
+    "token_type": "Bearer",
+    "expires_in": 3600
+  }
+}
