@@ -4,18 +4,65 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  whitespace:
-    name: Check whitespace
+  changes:
+    name: Changed files
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    outputs:
+      python: ${{ steps.changes.outputs.python }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 2
+          fetch-depth: 0
           persist-credentials: false
-      - run: git diff --check HEAD^ HEAD
+      - id: changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: bash scripts/ci_changes.sh
+      - name: Whitespace
+        run: git diff --check HEAD^ HEAD
+
+  python:
+    name: Python ${{ matrix.python }} / ${{ matrix.os }}
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.python != 'false' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {python: '3.11', os: ubuntu-latest}
+          - {python: '3.13', os: ubuntu-latest}
+          - {python: '3.13', os: macos-latest}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: '0.12.6'
+          python-version: ${{ matrix.python }}
+      - name: Lint, types and tests
+        run: |
+          uv run --locked ruff format --check .
+          uv run --locked ruff check .
+          uv run --locked pyright
+          uv run --locked pytest
+      - name: Build and verify both distributions
+        run: |
+          uv build
+          uv run --locked twine check dist/*
+          uv venv "$RUNNER_TEMP/wheel"
+          uv pip install --python "$RUNNER_TEMP/wheel/bin/python" dist/*.whl
+          "$RUNNER_TEMP/wheel/bin/python" scripts/smoke.py
+          uv venv "$RUNNER_TEMP/sdist"
+          uv pip install --python "$RUNNER_TEMP/sdist/bin/python" dist/*.tar.gz
+          "$RUNNER_TEMP/sdist/bin/python" scripts/smoke.py

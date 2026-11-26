@@ -1,0 +1,101 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: '0.12.6'
+          python-version: '3.11'
+      - name: Verify reviewed source and version
+        run: |
+          git merge-base --is-ancestor HEAD origin/main
+          uv run --locked python - <<'PY'
+          import os, re, tomllib
+          version = tomllib.load(open('pyproject.toml', 'rb'))['project']['version']
+          assert re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', version)
+          assert os.environ['GITHUB_REF_NAME'] == 'v' + version
+          PY
+      - name: Test, build and check
+        run: |
+          uv run --locked ruff format --check .
+          uv run --locked ruff check .
+          uv run --locked pyright
+          uv run --locked pytest
+          uv build
+          uv run --locked twine check dist/*
+          uv venv "$RUNNER_TEMP/install"
+          uv pip install --python "$RUNNER_TEMP/install/bin/python" dist/*.whl
+          "$RUNNER_TEMP/install/bin/python" scripts/smoke.py
+          uv venv "$RUNNER_TEMP/source"
+          uv pip install --python "$RUNNER_TEMP/source/bin/python" dist/*.tar.gz
+          "$RUNNER_TEMP/source/bin/python" scripts/smoke.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: distributions
+          path: dist/
+
+  github:
+    name: Publish GitHub release
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: release
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: distributions
+          path: dist
+      - name: Publish immutable versioned assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            # Never replace bytes on a rerun; detect a partial upload instead.
+            mkdir "$RUNNER_TEMP/published"
+            gh release download "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --dir "$RUNNER_TEMP/published"
+            for file in dist/*.whl dist/*.tar.gz; do
+              test -f "$RUNNER_TEMP/published/$(basename "$file")"
+            done
+            (cd "$RUNNER_TEMP/published" && sha256sum --check SHA256SUMS)
+          else
+            (cd dist && sha256sum ./*.whl ./*.tar.gz > SHA256SUMS)
+            gh release create "$GITHUB_REF_NAME" dist/* --draft --verify-tag --repo "$GITHUB_REPOSITORY" --title "readlint.com $GITHUB_REF_NAME" --generate-notes
+          fi
+          if [ "$(gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)" = true ]; then
+            gh release edit "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --draft=false
+          fi
+
+  pypi:
+    name: Publish to PyPI
+    if: ${{ vars.PYPI_TRUSTED_PUBLISHING == 'true' }}
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: release
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: distributions
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+          skip-existing: true
