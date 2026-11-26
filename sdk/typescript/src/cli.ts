@@ -50,7 +50,7 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
     for (const flag of ["title", "description", "idempotency-key", "limit", "offset"] as const) {
       if (values[flag] !== undefined && !(["check", "evaluate"].includes(command) ? ["title", "description", "idempotency-key"] : command === "list" ? ["limit", "offset"] : []).includes(flag)) throw new TypeError();
     }
-    const timeoutMs = values.timeout === undefined ? 120_000 : Number(values.timeout) * 1000;
+    const timeoutMs = values.timeout === undefined ? 120_000 : Math.ceil(Number(values.timeout) * 1000);
     const options: ReadlintOptions = {apiKey: values["api-key"], baseUrl: values["base-url"], timeoutMs};
     let result: unknown;
     if (command === "version") result = {version: VERSION};

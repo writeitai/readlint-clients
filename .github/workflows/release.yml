@@ -135,7 +135,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-          registry-url: https://registry.npmjs.org
+          # Avoid writing a classic-token auth setting on the OIDC path.
+          registry-url: ${{ vars.NPM_BOOTSTRAP_PUBLISH == 'true' && 'https://registry.npmjs.org' || '' }}
       - name: Check publishing client
         run: |
           npm_version=$(npm --version)

@@ -46,7 +46,9 @@ use GitHub-hosted runners. No Docker or private source is needed.
    installs, and publishes both plus the TypeScript npm archive with SHA-256 checksums
    to a GitHub Release.
 4. Verify the public wheel URL in a clean environment using the installation
-   instructions. Keep old versioned assets available.
+   instructions. Also verify the npm archive in a clean directory with
+   `npx --yes --package=<tgz-URL> readlint version --json` and run the installed
+   package checks. Keep old versioned assets available.
 
 The `release` GitHub environment restricts publication to version tags.
 PyPI publishing is prepared in the same workflow and enabled only when

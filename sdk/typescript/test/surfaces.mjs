@@ -33,7 +33,7 @@ try {
   for (const args of [
     ["login"], ["check", file, "--title", "Contract", "--description", "Context", "--idempotency-key", "contract-key"],
     ["list", "--limit", "3", "--offset", "2"], ["get", fixtures.evaluation.id], ["delete", fixtures.evaluation.id],
-  ]) { assert.equal(await main(["--api-key", "rlk_contract", "--json", ...args]), 0); JSON.parse(writes.pop()); }
+  ]) { assert.equal(await main(["--api-key", "rlk_contract", "--json", "--timeout", "0.1234", ...args]), 0); JSON.parse(writes.pop()); }
   // Device hostname/OS are platform-specific and validated separately.
   calls[0].body.hostname = "fixture-host"; calls[0].body.os = "fixture-os";
   const node_cli = calls.splice(0);

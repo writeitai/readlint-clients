@@ -19,7 +19,7 @@ cookies or initiate an interactive login.
 
 Add this to a client that supports local stdio MCP servers, such as Claude
 Desktop's MCP configuration. The [`mcp.json`](../mcp.json) file uses the versioned release archive until npm publication.
-Use the absolute path to `readlint` if the client cannot find it on PATH.
+Use the absolute path to `npx` (or `readlint`/`uvx`) if the client cannot find it on PATH.
 
 ```json
 {
