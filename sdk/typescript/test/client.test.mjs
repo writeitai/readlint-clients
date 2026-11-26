@@ -119,6 +119,7 @@ test("unsafe origins and inputs fail before sending credentials", async () => {
   }
   const client = new Readlint({apiKey: "key", fetch: () => assert.fail("unexpected request")});
   assert.throws(() => client.getEvaluation("../auth"), TypeError);
+  assert.throws(() => client.getEvaluation(fixtures.evaluation.id + "\n"), TypeError);
   for (const idempotencyKey of ["has spaces", "", undefined, null]) {
     assert.throws(() => client.evaluate("text", {idempotencyKey}), TypeError);
   }
