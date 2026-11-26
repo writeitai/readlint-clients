@@ -4,7 +4,7 @@ Install the public release into a clean Python 3.11+ environment:
 
 ```sh
 python -m venv .venv
-.venv/bin/python -m pip install https://github.com/writeitai/readlint-clients/releases/download/v0.1.0/readlint-0.1.0-py3-none-any.whl
+.venv/bin/python -m pip install https://github.com/writeitai/readlint-clients/releases/download/v0.2.0/readlint-0.2.0-py3-none-any.whl
 ```
 
 Set `READLINT_API_KEY` to a key created in the

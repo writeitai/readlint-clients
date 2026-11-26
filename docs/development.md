@@ -66,3 +66,13 @@ and browser approval stay in the hosted web app; client methods expose the
 four evaluation operations and device login. Backend changes need coordinated
 client updates. The response types follow the public `https://readlint.com/v1/openapi.json`
 contract; backend implementation and production inventory stay private.
+
+The stdio MCP adapter, `mcp.json` and draft-review skill are adapted from
+`cmd/mountable/mcp.go`, `mcp.json` and `skills/mountable/SKILL.md` at the same
+mountable revision. The Python MCP SDK owns the protocol; handlers reuse the
+readlint SDK and sanitized errors. Four tools cover evaluation CRUD. The
+serialized catalogue has a 6,000-byte CI budget in `tests/test_mcp.py`.
+The installed-package smoke test uses MCP Python SDK 1.30.0 as a real stdio
+client, discovers tools and exercises CRUD, saved/env/flag credentials,
+invalid input, bad/missing credentials, lost-answer recovery and transient
+failures against a controlled local HTTP service. It never calls a paid model.
