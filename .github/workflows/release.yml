@@ -120,7 +120,7 @@ jobs:
 
   npm:
     name: Publish to npm
-    if: ${{ vars.NPM_TRUSTED_PUBLISHING == 'true' }}
+    if: ${{ vars.NPM_TRUSTED_PUBLISHING == 'true' || vars.NPM_BOOTSTRAP_PUBLISH == 'true' }}
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -136,4 +136,19 @@ jobs:
         with:
           node-version: '24'
           registry-url: https://registry.npmjs.org
-      - run: npm publish dist/readlint.com-*.tgz --provenance --access public
+      - name: Check publishing client
+        run: |
+          npm_version=$(npm --version)
+          echo "npm $npm_version"
+          IFS=. read -r npm_major npm_minor npm_patch <<< "$npm_version"
+          if (( npm_major < 11 || (npm_major == 11 && (npm_minor < 5 || (npm_minor == 5 && npm_patch < 1))) )); then
+            echo "npm >=11.5.1 is required for trusted publishing" >&2
+            exit 1
+          fi
+      - name: Publish package
+        env:
+          NODE_AUTH_TOKEN: ${{ vars.NPM_BOOTSTRAP_PUBLISH == 'true' && secrets.NPM_BOOTSTRAP_TOKEN || '' }}
+          BOOTSTRAP: ${{ vars.NPM_BOOTSTRAP_PUBLISH }}
+        run: |
+          if [ "$BOOTSTRAP" = true ]; then test -n "$NODE_AUTH_TOKEN"; fi
+          npm publish dist/readlint.com-*.tgz --provenance --access public

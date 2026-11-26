@@ -18,7 +18,7 @@ Credentials never belong in tool arguments. The server does not accept browser
 cookies or initiate an interactive login.
 
 Add this to a client that supports local stdio MCP servers, such as Claude
-Desktop's MCP configuration. The same example is in [`mcp.json`](../mcp.json).
+Desktop's MCP configuration. The [`mcp.json`](../mcp.json) file uses the versioned release archive until npm publication.
 Use the absolute path to `readlint` if the client cannot find it on PATH.
 
 ```json

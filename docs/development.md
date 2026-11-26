@@ -81,17 +81,25 @@ contract; backend implementation and production inventory stay private.
 
 ## TypeScript and API drift
 
-The TypeScript SDK's version lives in `sdk/typescript/package.json`; its archive
-is attached to the repository's next `vX.Y.Z` release alongside the Python
-packages. Bump the Python release version for a new combined release, and bump
-the TypeScript version whenever its published bytes change. npm publishing uses the `npm` job in `release.yml`, protected by the `release`
-environment and `NPM_TRUSTED_PUBLISHING=true`. The job uses OIDC and
-`npm publish --provenance`. Before the first publication, install the public `.tgz`.
-A new package needs a one-time initial publish: if the product Secret Manager
-contains `npm-publish-token`, use it as `NODE_AUTH_TOKEN` only for that publish.
-Then configure npm trusted publishing for this repository, `release.yml` and
-`release`, enable the repository variable and delete that token. Never store it
-in this repository or GitHub repository secrets.
+Python, npm and Git tags use one shared version. Every release updates
+`pyproject.toml`, `uv.lock`, `sdk/typescript/package.json`, its lockfile,
+`src/version.ts` in that package and the `vX.Y.Z` tag together. CI rejects
+mismatches. Release assets contain both Python distributions and the npm archive.
+
+The `npm` job in `release.yml` uses the protected `release` environment and
+`npm publish --provenance`. After the package exists, configure npm's trusted
+publisher for `writeitai/readlint-clients`, `release.yml`, environment `release`,
+and set `NPM_TRUSTED_PUBLISHING=true`. The job checks npm >=11.5.1.
+
+The first publication cannot use OIDC. If an authorized bootstrap token is
+available, place it in the `release` environment as `NPM_BOOTSTRAP_TOKEN`
+and set `NPM_BOOTSTRAP_PUBLISH=true`. The job passes it as `NODE_AUTH_TOKEN`
+only on this bootstrap path. After the initial publication, configure the
+trusted publisher, disable the bootstrap variable, and delete/revoke that token
+from the environment and its original credential store. Never commit a token
+or place it in repository-wide secrets. If neither publication gate is enabled,
+GitHub Release archives remain the install channel.
+
 The clean consumer check installs that archive outside the source tree,
 type-checks the documented example against its shipped declarations, and runs
 CRUD, an authentication failure and a real HTTP lost-answer retry with one
