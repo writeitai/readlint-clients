@@ -142,8 +142,7 @@ adapted from public `writeitai/mountable`
 package configuration). The regenerate/diff check follows `writeitai/fsit`
 `6cf7db107b1d052f87824780f88a537470951a53`
 (`web/openapi-ts.config.ts`, `web/scripts/check-openapi.ts`), reduced to the
-public schema and TypeScript types. There is no generated runtime client or
-runtime API client. The MCP protocol uses the official TypeScript SDK and Zod.
+public schema and TypeScript types. The transport uses native fetch. The MCP protocol uses the official TypeScript SDK and Zod.
 The generator's `js-yaml` transitive dependency is pinned
 to patched 4.3.2 with an override.
 The stdio MCP adapter, `mcp.json` and draft-review skill are adapted from
