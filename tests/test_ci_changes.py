@@ -29,6 +29,9 @@ def repository(tmp_path):
     [
         ("docs", "false"),
         ("code", "true"),
+        ("typescript", "false"),
+        ("contract", "false"),
+        ("fixture", "false"),
         ("workflow", "true"),
         ("unknown", "true"),
         ("rename", "true"),
@@ -42,7 +45,10 @@ def test_classification(repository, change, expected):
     else:
         path = {
             "docs": "README.md",
-            "code": "module.py",
+            "code": "src/module.py",
+            "typescript": "sdk/typescript/src/index.ts",
+            "contract": "contracts/openapi.json",
+            "fixture": "contracts/fixtures.json",
             "workflow": ".github/workflows/ci.yml",
             "unknown": "new-file",
         }[change]
@@ -64,7 +70,14 @@ def test_classification(repository, change, expected):
         },
         check=True,
     )
-    assert output.read_text() == f"python={expected}\n"
+    flags = dict(line.split("=") for line in output.read_text().splitlines())
+    assert flags["python"] == expected
+    assert flags["typescript"] == (
+        "true"
+        if change in {"typescript", "fixture", "workflow", "unknown", "rename"}
+        else "false"
+    )
+    assert flags["contract"] == ("false" if change == "docs" else "true")
 
 
 @pytest.mark.parametrize("event", ["push", "workflow_dispatch"])
@@ -77,7 +90,7 @@ def test_main_and_manual_always_run(repository, event):
         env={**os.environ, "GITHUB_EVENT_NAME": event, "GITHUB_OUTPUT": str(output)},
         check=True,
     )
-    assert output.read_text() == "python=true\n"
+    assert output.read_text() == "python=true\ntypescript=true\ncontract=true\n"
 
 
 def test_failed_classifier_emits_no_skip(repository):

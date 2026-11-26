@@ -1,0 +1,26 @@
+{
+  "python": {
+    "POST /auth/device/code": "readlint.auth.login",
+    "POST /auth/device/token": "readlint.auth.login",
+    "POST /v1/evaluations": "Readlint.evaluate",
+    "GET /v1/evaluations": "Readlint.list_evaluations",
+    "GET /v1/evaluations/{evaluation_id}": "Readlint.get_evaluation",
+    "DELETE /v1/evaluations/{evaluation_id}": "Readlint.delete_evaluation"
+  },
+  "cli": {
+    "POST /auth/device/code": "login",
+    "POST /auth/device/token": "login",
+    "POST /v1/evaluations": "evaluate",
+    "GET /v1/evaluations": "list",
+    "GET /v1/evaluations/{evaluation_id}": "get",
+    "DELETE /v1/evaluations/{evaluation_id}": "delete"
+  },
+  "typescript": {
+    "POST /auth/device/code": "Readlint.createDeviceCode",
+    "POST /auth/device/token": "Readlint.createDeviceToken",
+    "POST /v1/evaluations": "Readlint.evaluate",
+    "GET /v1/evaluations": "Readlint.listEvaluations",
+    "GET /v1/evaluations/{evaluation_id}": "Readlint.getEvaluation",
+    "DELETE /v1/evaluations/{evaluation_id}": "Readlint.deleteEvaluation"
+  }
+}

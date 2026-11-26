@@ -20,6 +20,9 @@ jobs:
         with:
           version: '0.12.6'
           python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
       - name: Verify reviewed source and version
         run: |
           git merge-base --is-ancestor HEAD origin/main
@@ -43,6 +46,16 @@ jobs:
           uv venv "$RUNNER_TEMP/source"
           uv pip install --python "$RUNNER_TEMP/source/bin/python" dist/*.tar.gz
           "$RUNNER_TEMP/source/bin/python" scripts/smoke.py
+      - name: TypeScript SDK and shared API contract
+        run: |
+          npm --prefix sdk/typescript ci
+          npm --prefix sdk/typescript run typecheck
+          npm --prefix sdk/typescript test
+          uv run --locked python scripts/check_contract.py
+          npm --prefix sdk/typescript run check:openapi
+          uv run --locked pytest contracts
+          npm pack ./sdk/typescript --pack-destination dist
+          node sdk/typescript/scripts/verify-package.mjs dist/writeitai-readlint-*.tgz
       - uses: actions/upload-artifact@v4
         with:
           name: distributions
@@ -69,12 +82,12 @@ jobs:
             # Never replace bytes on a rerun; detect a partial upload instead.
             mkdir "$RUNNER_TEMP/published"
             gh release download "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --dir "$RUNNER_TEMP/published"
-            for file in dist/*.whl dist/*.tar.gz; do
+            for file in dist/*.whl dist/*.tar.gz dist/*.tgz; do
               test -f "$RUNNER_TEMP/published/$(basename "$file")"
             done
             (cd "$RUNNER_TEMP/published" && sha256sum --check SHA256SUMS)
           else
-            (cd dist && sha256sum ./*.whl ./*.tar.gz > SHA256SUMS)
+            (cd dist && sha256sum ./*.whl ./*.tar.gz ./*.tgz > SHA256SUMS)
             gh release create "$GITHUB_REF_NAME" dist/* --draft --verify-tag --repo "$GITHUB_REPOSITORY" --title "readlint.com $GITHUB_REF_NAME" --generate-notes
           fi
           if [ "$(gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)" = true ]; then
@@ -95,6 +108,8 @@ jobs:
         with:
           name: distributions
           path: dist
+      - name: Keep npm archives outside the PyPI upload
+        run: rm dist/*.tgz
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/

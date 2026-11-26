@@ -5,6 +5,8 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: '23 5 * * *'
 
 permissions:
   contents: read
@@ -16,6 +18,8 @@ jobs:
     timeout-minutes: 5
     outputs:
       python: ${{ steps.changes.outputs.python }}
+      typescript: ${{ steps.changes.outputs.typescript }}
+      contract: ${{ steps.changes.outputs.contract }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -66,3 +70,58 @@ jobs:
           uv venv "$RUNNER_TEMP/sdist"
           uv pip install --python "$RUNNER_TEMP/sdist/bin/python" dist/*.tar.gz
           "$RUNNER_TEMP/sdist/bin/python" scripts/smoke.py
+
+  typescript:
+    name: TypeScript SDK / Node ${{ matrix.node }}
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.typescript != 'false' }}
+    strategy:
+      matrix:
+        node: ['22', '24']
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: sdk/typescript/package-lock.json
+      - run: npm --prefix sdk/typescript ci
+      - run: npm --prefix sdk/typescript run typecheck
+      - run: npm --prefix sdk/typescript test
+      - name: Verify distributed package in a clean consumer
+        run: |
+          mkdir -p dist
+          npm pack ./sdk/typescript --pack-destination dist
+          node sdk/typescript/scripts/verify-package.mjs dist/writeitai-readlint-*.tgz
+
+  contract:
+    name: API client drift
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.contract != 'false' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: '0.12.6'
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm --prefix sdk/typescript ci
+      - run: uv run --locked python scripts/check_contract.py
+      - run: npm --prefix sdk/typescript run check:openapi
+      - run: npm --prefix sdk/typescript run build
+      - name: Shared contract lint and types
+        run: |
+          uv run --locked ruff format --check .
+          uv run --locked ruff check .
+          uv run --locked pyright
+      - run: uv run --locked pytest contracts tests

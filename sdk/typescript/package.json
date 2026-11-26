@@ -1,0 +1,45 @@
+{
+  "name": "@writeitai/readlint",
+  "version": "0.1.0",
+  "description": "Typed HTTPS SDK for readlint.com",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist/",
+    "LICENSE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/writeitai/readlint-clients.git",
+    "directory": "sdk/typescript"
+  },
+  "homepage": "https://readlint.com/docs",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "generate": "node scripts/openapi.mjs",
+    "check:openapi": "node scripts/openapi.mjs --check",
+    "prepack": "npm run build"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "0.99.0",
+    "@types/node": "24.19.0",
+    "typescript": "6.0.3"
+  },
+  "overrides": {
+    "js-yaml": "4.3.2"
+  }
+}
