@@ -10,6 +10,9 @@ the public releases. See the [product documentation](https://readlint.com/docs)
 for accounts and the hosted API, and [development notes](docs/development.md)
 for local checks and releases.
 
+Configure the [local MCP server and agent skill](docs/mcp.md), or install the
+skill with `npx skills add writeitai/readlint-clients --skill readlint`.
+
 To contribute, read [AGENTS.md](AGENTS.md) and the
 [shared project skills](.agents/skills).
 

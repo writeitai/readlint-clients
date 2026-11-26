@@ -4,7 +4,7 @@ Install Python 3.11 or newer and [uv](https://docs.astral.sh/uv/). The same
 package contains the CLI and the Python SDK. No private source is needed.
 
 ```sh
-uv tool install https://github.com/writeitai/readlint-clients/releases/download/v0.1.0/readlint-0.1.0-py3-none-any.whl
+uv tool install https://github.com/writeitai/readlint-clients/releases/download/v0.2.0/readlint-0.2.0-py3-none-any.whl
 readlint --help
 readlint version --json
 ```

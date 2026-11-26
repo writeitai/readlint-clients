@@ -60,6 +60,7 @@ def parser() -> argparse.ArgumentParser:
         help="Remove this local login; revoke keys in the web app",
     )
     commands.add_parser("version", parents=[common], help="Print the installed version")
+    commands.add_parser("mcp", parents=[common], help="Serve MCP tools over stdio")
     evaluate = commands.add_parser(
         "evaluate", parents=[common], help="Submit Markdown or MDX"
     )
@@ -86,6 +87,15 @@ def main() -> int:
     submission_key = None
     try:
         args = parser().parse_args()
+        if args.command == "mcp":
+            from readlint.mcp import serve
+
+            serve(
+                api_key=getattr(args, "api_key", None),
+                base_url=getattr(args, "base_url", None),
+                timeout=getattr(args, "timeout", 120),
+            )
+            return 0
         if args.command == "version":
             result = {"version": __version__}
         elif args.command == "logout":

@@ -138,3 +138,12 @@ package configuration). The regenerate/diff check follows `writeitai/fsit`
 public schema and TypeScript types. There is no generated runtime client or
 runtime dependency. The generator's `js-yaml` transitive dependency is pinned
 to patched 4.3.2 with an override.
+The stdio MCP adapter, `mcp.json` and draft-review skill are adapted from
+`cmd/mountable/mcp.go`, `mcp.json` and `skills/mountable/SKILL.md` at the same
+mountable revision. The Python MCP SDK owns the protocol; handlers reuse the
+readlint SDK and sanitized errors. Four tools cover evaluation CRUD. The
+serialized catalogue has a 6,000-byte CI budget in `tests/test_mcp.py`.
+The installed-package smoke test uses MCP Python SDK 1.30.0 as a real stdio
+client, discovers tools and exercises CRUD, saved/env/flag credentials,
+invalid input, bad/missing credentials, lost-answer recovery and transient
+failures against a controlled local HTTP service. It never calls a paid model.
