@@ -96,7 +96,7 @@ jobs:
         run: |
           mkdir -p dist
           npm pack ./sdk/typescript --pack-destination dist
-          node sdk/typescript/scripts/verify-package.mjs dist/writeitai-readlint-*.tgz
+          node sdk/typescript/scripts/verify-package.mjs dist/readlint.com-*.tgz
 
   contract:
     name: API client drift

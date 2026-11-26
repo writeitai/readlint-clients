@@ -29,6 +29,9 @@ jobs:
           uv run --locked python - <<'PY'
           import os, re, tomllib
           version = tomllib.load(open('pyproject.toml', 'rb'))['project']['version']
+          import json
+          assert json.load(open('sdk/typescript/package.json'))['version'] == version
+          assert open('sdk/typescript/src/version.ts').read().strip() == f'export const VERSION = "{version}";'
           assert re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', version)
           assert os.environ['GITHUB_REF_NAME'] == 'v' + version
           PY
@@ -55,7 +58,7 @@ jobs:
           npm --prefix sdk/typescript run check:openapi
           uv run --locked pytest contracts
           npm pack ./sdk/typescript --pack-destination dist
-          node sdk/typescript/scripts/verify-package.mjs dist/writeitai-readlint-*.tgz
+          node sdk/typescript/scripts/verify-package.mjs dist/readlint.com-*.tgz
       - uses: actions/upload-artifact@v4
         with:
           name: distributions
@@ -114,3 +117,23 @@ jobs:
         with:
           packages-dir: dist/
           skip-existing: true
+
+  npm:
+    name: Publish to npm
+    if: ${{ vars.NPM_TRUSTED_PUBLISHING == 'true' }}
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: release
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: distributions
+          path: dist
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: https://registry.npmjs.org
+      - run: npm publish dist/readlint.com-*.tgz --provenance --access public

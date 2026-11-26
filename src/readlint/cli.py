@@ -62,7 +62,7 @@ def parser() -> argparse.ArgumentParser:
     commands.add_parser("version", parents=[common], help="Print the installed version")
     commands.add_parser("mcp", parents=[common], help="Serve MCP tools over stdio")
     evaluate = commands.add_parser(
-        "evaluate", parents=[common], help="Submit Markdown or MDX"
+        "evaluate", aliases=["check"], parents=[common], help="Submit Markdown or MDX"
     )
     evaluate.add_argument("file", help="UTF-8 file, or - for stdin")
     evaluate.add_argument("--title")
@@ -123,7 +123,7 @@ def main() -> int:
                 else:
                     if not key:
                         client._api_key = load_credentials(client.base_url)
-                    if args.command == "evaluate":
+                    if args.command in {"evaluate", "check"}:
                         article = (
                             sys.stdin.read()
                             if args.file == "-"

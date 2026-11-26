@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import { readFileSync } from "node:fs";
-import { Readlint, ReadlintError } from "@writeitai/readlint";
+import { Readlint, ReadlintError } from "readlint.com";
 
 const fixtures = JSON.parse(readFileSync(process.argv[2]));
 const stored = new Map();

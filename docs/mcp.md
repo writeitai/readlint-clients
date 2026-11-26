@@ -1,11 +1,13 @@
 # MCP and agent skill
 
-Install the package with Python 3.11+ and uv:
+With Node.js 22+, use `npx readlint.com login`, then `npx readlint.com mcp`.
+This package includes the same four tools as the Python server.
+Until the first npm publication, use the versioned archive shown in the
+[CLI installation guide](cli.md).
 
-```sh
-uv tool install https://github.com/writeitai/readlint-clients/releases/download/v0.2.0/readlint-0.2.0-py3-none-any.whl
-readlint login
-```
+For Python 3.11+ with uv, use `uvx readlint login` and `uvx readlint mcp`
+after PyPI publication, or `uvx --from <wheel-URL> readlint` with the public
+wheel from the CLI guide.
 
 Approve the displayed device code in the web app. The local MCP server uses
 that saved login. Or supply `READLINT_API_KEY` in the server process's
@@ -23,12 +25,17 @@ Use the absolute path to `readlint` if the client cannot find it on PATH.
 {
   "mcpServers": {
     "readlint.com": {
-      "command": "readlint",
-      "args": ["mcp"]
+      "command": "npx",
+      "args": ["--yes", "readlint.com", "mcp"]
     }
   }
 }
 ```
+
+Before npm publication, use `"args": ["--yes", "--package=https://github.com/writeitai/readlint-clients/releases/download/v0.3.0/readlint.com-0.3.0.tgz", "readlint", "mcp"]`.
+For Python, set `"command": "uvx"` and `"args": ["readlint", "mcp"]`
+after PyPI publication, or include `"--from", "<wheel-URL>"` before `readlint`.
+Both clients share the same saved-login file on macOS and Linux.
 
 Restart the client, connect and discover these four tools:
 

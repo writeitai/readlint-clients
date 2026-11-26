@@ -1,13 +1,23 @@
-# readlint.com TypeScript SDK
+# readlint.com
 
-Typed evaluation and device-authorization methods for Node.js 22 and later.
+TypeScript SDK, CLI and stdio MCP server for Node.js 22 and later.
 
 ```sh
-npm install https://github.com/writeitai/readlint-clients/releases/download/v0.2.0/writeitai-readlint-0.1.0.tgz
+npx readlint.com check article.md --json
+npx readlint.com mcp
+```
+
+After the first npm publication, install with `npm install readlint.com`.
+Until then, run the CLI with `npx --yes --package=<archive-URL> readlint`
+or install the public archive below. Python users can use `uvx readlint`
+after PyPI publication, or the versioned wheel in the CLI guide.
+
+```sh
+npm install https://github.com/writeitai/readlint-clients/releases/download/v0.3.0/readlint.com-0.3.0.tgz
 ```
 
 ```ts
-import { Readlint } from "@writeitai/readlint";
+import { Readlint } from "readlint.com";
 
 const client = new Readlint(); // Set READLINT_API_KEY on your server.
 const result = await client.evaluate("# Article\n\nUseful text.", {

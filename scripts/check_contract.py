@@ -25,12 +25,23 @@ def operations(schema):
 
 def check_coverage(schema):
     clients = json.loads(CLIENTS.read_text())
-    assert set(clients) == {"python", "cli", "typescript"}, (
-        "Review every shipped client"
-    )
+    assert set(clients) == {
+        "python",
+        "cli",
+        "typescript",
+        "node_cli",
+        "python_mcp",
+        "node_mcp",
+    }, "Review every shipped client"
     for name, coverage in clients.items():
         assert set(coverage) == operations(schema), f"{name}: stale operation coverage"
         assert all(coverage.values()), f"{name}: unnamed client entry point"
+        for operation, entry in coverage.items():
+            if entry.startswith("Excluded:"):
+                assert name.endswith("_mcp") and operation in {
+                    "POST /auth/device/code",
+                    "POST /auth/device/token",
+                }, f"{name}: unsupported exclusion; review the public client surface"
 
 
 class NoRedirect(HTTPRedirectHandler):

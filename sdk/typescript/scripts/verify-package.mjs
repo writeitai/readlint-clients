@@ -12,9 +12,11 @@ const run = (command, args) => execFileSync(command, args, {cwd: temporary, stdi
 try {
   writeFileSync(join(temporary, "package.json"), JSON.stringify({private: true, type: "module"}));
   run("npm", ["install", "--ignore-scripts", "--no-package-lock", resolve(process.argv[2])]);
-  for (const file of ["example.mts", "installed.mjs"]) copyFileSync(join(sdk, "test", file), join(temporary, file));
+  run("npx", ["--yes", "--package", resolve(process.argv[2]), "readlint", "version", "--json"]);
+  for (const file of ["example.mts", "installed.mjs", "installed-surfaces.mjs"]) copyFileSync(join(sdk, "test", file), join(temporary, file));
   run(process.execPath, [join(sdk, "node_modules/typescript/bin/tsc"), "--strict", "--noEmit", "--target", "ES2022", "--module", "NodeNext", "example.mts"]);
   run(process.execPath, ["installed.mjs", join(sdk, "../../contracts/fixtures.json")]);
+  run(process.execPath, ["installed-surfaces.mjs", join(sdk, "../../contracts/fixtures.json")]);
 } finally {
   rmSync(temporary, {recursive: true, force: true});
 }

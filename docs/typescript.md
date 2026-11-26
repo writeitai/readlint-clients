@@ -1,19 +1,19 @@
 # TypeScript SDK
 
-Requires Node.js 22 or later. Install the public npm archive; no private source
-or runtime dependencies are needed:
+Requires Node.js 22 or later. Install the public npm archive; no private source is needed:
 
 ```sh
-npm install https://github.com/writeitai/readlint-clients/releases/download/v0.2.0/writeitai-readlint-0.1.0.tgz
+npm install https://github.com/writeitai/readlint-clients/releases/download/v0.3.0/readlint.com-0.3.0.tgz
 ```
 
-The package name is `@writeitai/readlint`. This version is distributed through
+The package name is `readlint.com`; use `npm install readlint.com` after the
+first npm publication. This version is distributed through
 GitHub Releases. Set `READLINT_API_KEY` to a key from the web app or the
 [CLI device login](cli.md). Keep keys on your server; never include an account
 key in a public browser bundle.
 
 ```ts
-import { Readlint, ReadlintError, type Evaluation } from "@writeitai/readlint";
+import { Readlint, ReadlintError, type Evaluation } from "readlint.com";
 
 const client = new Readlint(); // READLINT_API_KEY
 try {

@@ -1,16 +1,32 @@
 # CLI
 
-Install Python 3.11 or newer and [uv](https://docs.astral.sh/uv/). The same
-package contains the CLI and the Python SDK. No private source is needed.
+With Node.js 22 or newer, run the CLI without installing it globally:
 
 ```sh
-uv tool install https://github.com/writeitai/readlint-clients/releases/download/v0.2.0/readlint-0.2.0-py3-none-any.whl
-readlint --help
-readlint version --json
+npx readlint.com check article.md --json
+npx readlint.com login
+npx readlint.com --help
 ```
 
-For a one-off command, use `uvx --from <wheel-URL> readlint --help`. Releases
-also include a source distribution for `pip install <source-URL>`.
+The `readlint.com` npm package contains the TypeScript SDK, CLI and MCP server.
+The registry commands above become available after the first npm publication.
+Until then, run the same package from its public release archive:
+
+```sh
+npx --yes --package=https://github.com/writeitai/readlint-clients/releases/download/v0.3.0/readlint.com-0.3.0.tgz readlint --help
+```
+
+For Python 3.11+ and uv, use `uvx readlint` after its PyPI publication, or the
+versioned public wheel:
+
+```sh
+uvx --from https://github.com/writeitai/readlint-clients/releases/download/v0.3.0/readlint-0.3.0-py3-none-any.whl readlint --help
+```
+
+Install permanently with `npm install -g readlint.com` after npm publication,
+or `uv tool install <wheel-URL>`. The examples below use the installed
+`readlint` command; prefix them with `npx readlint.com` or `uvx readlint` as
+appropriate. `check` and `evaluate` submit the same request in both clients.
 
 ## Sign in
 

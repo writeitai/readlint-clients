@@ -1,4 +1,4 @@
-import { Readlint, ReadlintError, type Evaluation } from "@writeitai/readlint";
+import { Readlint, ReadlintError, type Evaluation } from "readlint.com";
 
 const client = new Readlint();
 try {

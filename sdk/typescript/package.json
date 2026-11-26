@@ -1,7 +1,7 @@
 {
-  "name": "@writeitai/readlint",
-  "version": "0.1.0",
-  "description": "Typed HTTPS SDK for readlint.com",
+  "name": "readlint.com",
+  "version": "0.3.0",
+  "description": "TypeScript SDK, CLI and MCP server for readlint.com",
   "license": "Apache-2.0",
   "type": "module",
   "exports": {
@@ -41,5 +41,12 @@
   },
   "overrides": {
     "js-yaml": "4.3.2"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "zod": "^4.6.7"
+  },
+  "bin": {
+    "readlint": "./dist/cli.js"
   }
 }

@@ -84,7 +84,9 @@ def validate_calls(calls, client, document=SCHEMA):
         else:
             assert call["body"] is None
     coverage = json.loads((ROOT / "contracts/clients.json").read_text())[client]
-    assert seen == set(coverage)
+    assert seen == {
+        op for op, entry in coverage.items() if not entry.startswith("Excluded:")
+    }
 
 
 def capture(request):
@@ -325,3 +327,83 @@ def test_stale_generated_types_fail(tmp_path):
     )
     assert run.returncode != 0
     assert "new_field" in run.stdout
+
+
+def test_python_mcp_requests(transport, monkeypatch):
+    from readlint import mcp
+
+    calls, mock = transport
+    monkeypatch.setattr(
+        mcp,
+        "Readlint",
+        lambda *args, **kwargs: Readlint(*args, transport=mock, **kwargs),
+    )
+    for name, arguments in [
+        (
+            "evaluate_article",
+            {
+                "article": "# Article",
+                "title": "Contract",
+                "description": "Context",
+                "idempotency_key": "contract-key",
+            },
+        ),
+        ("list_evaluations", {"limit": 3, "offset": 2}),
+        ("get_evaluation", {"evaluation_id": ID}),
+        ("delete_evaluation", {"evaluation_id": ID}),
+    ]:
+        assert not mcp.call_tool(name, arguments, api_key="rlk_contract").isError
+    validate_calls(calls, "python_mcp")
+
+
+def test_node_cli_and_mcp_requests():
+    results = json.loads(
+        subprocess.check_output(
+            ["node", "sdk/typescript/test/surfaces.mjs"], cwd=ROOT, text=True
+        )
+    )
+    for surface, calls in results.items():
+        validate_calls(calls, surface)
+
+
+def test_tool_catalogue_matches_python_and_stays_small():
+    from readlint.mcp import TOOLS
+
+    expected = [tool.model_dump(exclude_none=True) for tool in TOOLS]
+    actual = json.loads(
+        subprocess.check_output(
+            [
+                "node",
+                "--input-type=module",
+                "-e",
+                "import {TOOLS} from './sdk/typescript/dist/tools.js'; console.log(JSON.stringify(TOOLS))",
+            ],
+            cwd=ROOT,
+            text=True,
+        )
+    )
+    assert actual == expected
+    assert len(json.dumps(actual, separators=(",", ":")).encode()) <= 6000
+
+
+def test_renamed_mcp_tool_fails_coverage(transport, monkeypatch):
+    from readlint import mcp
+
+    calls, _ = transport
+    monkeypatch.setattr(
+        mcp,
+        "TOOLS",
+        [
+            tool.model_copy(update={"name": "renamed"})
+            if tool.name == "evaluate_article"
+            else tool
+            for tool in mcp.TOOLS
+        ],
+    )
+    assert mcp.call_tool(
+        "evaluate_article",
+        {"article": "text", "idempotency_key": "retained"},
+        api_key="rlk_contract",
+    ).isError
+    with pytest.raises(AssertionError):
+        validate_calls(calls, "python_mcp")

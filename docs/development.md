@@ -18,7 +18,7 @@ npm --prefix sdk/typescript run check:openapi
 uv run python scripts/check_contract.py
 uv run pytest contracts
 npm pack ./sdk/typescript --pack-destination dist
-node sdk/typescript/scripts/verify-package.mjs dist/writeitai-readlint-*.tgz
+node sdk/typescript/scripts/verify-package.mjs dist/readlint.com-*.tgz
 ```
 
 CI also installs each built wheel and source distribution in separate clean
@@ -84,8 +84,14 @@ contract; backend implementation and production inventory stay private.
 The TypeScript SDK's version lives in `sdk/typescript/package.json`; its archive
 is attached to the repository's next `vX.Y.Z` release alongside the Python
 packages. Bump the Python release version for a new combined release, and bump
-the TypeScript version whenever its published bytes change. npm registry
-publishing is not configured; installation uses the exact public `.tgz` URL.
+the TypeScript version whenever its published bytes change. npm publishing uses the `npm` job in `release.yml`, protected by the `release`
+environment and `NPM_TRUSTED_PUBLISHING=true`. The job uses OIDC and
+`npm publish --provenance`. Before the first publication, install the public `.tgz`.
+A new package needs a one-time initial publish: if the product Secret Manager
+contains `npm-publish-token`, use it as `NODE_AUTH_TOKEN` only for that publish.
+Then configure npm trusted publishing for this repository, `release.yml` and
+`release`, enable the repository variable and delete that token. Never store it
+in this repository or GitHub repository secrets.
 The clean consumer check installs that archive outside the source tree,
 type-checks the documented example against its shipped declarations, and runs
 CRUD, an authentication failure and a real HTTP lost-answer retry with one
@@ -111,14 +117,15 @@ reconcile the SDKs and CLI, regenerate with
 schema must match before client CI and releases pass.
 
 `contracts/clients.json` is the explicit operation inventory for all shipped
-clients: CLI, Python and TypeScript. Each exposes all six client operations;
-there are no operation exclusions. Python's device flow is exposed by
+clients: Python and Node CLI, Python and TypeScript SDK, Python and Node MCP.
+Both CLIs and SDKs expose all six operations. Python's device flow is exposed by
 `readlint.auth.login`, which handles polling and saved login rather than
 returning raw device tokens. TypeScript exposes both low-level device calls.
 Browser account/key management, browser approval, billing, health, deployment
-and internal routes stay outside the exported client contract. MCP has not
-shipped; its ticket must add its curated tools, intentional exclusions and
-behavior tests to this inventory and job when it does.
+and internal routes stay outside the exported client contract. Both MCP servers expose the same four curated evaluation tools. Device-code
+creation and polling are intentionally excluded from MCP: sign in with CLI
+login or pass an API key. The inventory records these exclusions. CI compares
+the exact Python/Node catalogues and enforces the same 6,000-byte budget.
 
 The shared tests capture actual SDK methods and CLI parsing, then validate all
 query/path/header inputs, all body fields, success/error response fixtures and
@@ -136,7 +143,8 @@ package configuration). The regenerate/diff check follows `writeitai/fsit`
 `6cf7db107b1d052f87824780f88a537470951a53`
 (`web/openapi-ts.config.ts`, `web/scripts/check-openapi.ts`), reduced to the
 public schema and TypeScript types. There is no generated runtime client or
-runtime dependency. The generator's `js-yaml` transitive dependency is pinned
+runtime API client. The MCP protocol uses the official TypeScript SDK and Zod.
+The generator's `js-yaml` transitive dependency is pinned
 to patched 4.3.2 with an override.
 The stdio MCP adapter, `mcp.json` and draft-review skill are adapted from
 `cmd/mountable/mcp.go`, `mcp.json` and `skills/mountable/SKILL.md` at the same

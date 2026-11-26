@@ -10,10 +10,14 @@ when you have a shell; use the local MCP tools when you do not.
 
 ## Setup
 
-Prefer an existing `readlint` installation. If installation is authorized:
+Prefer an existing `readlint` installation. With Node.js 22+, use
+`npx readlint.com check article.md --json` or `npx readlint.com mcp`
+after npm publication. Python users can use `uvx readlint` after PyPI
+publication. Until then, see the versioned npm archive in the CLI guide,
+or install the public Python wheel if authorized:
 
 ```sh
-uv tool install https://github.com/writeitai/readlint-clients/releases/download/v0.2.0/readlint-0.2.0-py3-none-any.whl
+uv tool install https://github.com/writeitai/readlint-clients/releases/download/v0.3.0/readlint-0.3.0-py3-none-any.whl
 readlint version --json
 ```
 

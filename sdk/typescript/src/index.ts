@@ -102,7 +102,7 @@ function retryDelay(response: Response | undefined, attempt: number): number | n
   return Number.isFinite(seconds) && seconds <= 60 ? Math.max(0, seconds) * 1000 : null;
 }
 
-/** Typed evaluation API and low-level device flow. No runtime dependencies. */
+/** Typed evaluation API and low-level device flow. The SDK transport uses native fetch. */
 export class Readlint {
   readonly baseUrl: string;
   readonly #apiKey: string | undefined;
@@ -123,7 +123,7 @@ export class Readlint {
   }
 
   evaluate(article: string, options: EvaluateOptions): Promise<EvaluationResult> {
-    if (typeof options?.idempotencyKey !== "string" || !/^[!-~]{1,255}$/.test(options.idempotencyKey)) {
+    if (typeof options?.idempotencyKey !== "string" || !/^[!-~]{1,255}$(?![\s\S])/.test(options.idempotencyKey)) {
       throw new TypeError("idempotencyKey must be 1–255 printable ASCII characters without spaces.");
     }
     const body: EvaluationRequest = {
