@@ -152,4 +152,4 @@ jobs:
           BOOTSTRAP: ${{ vars.NPM_BOOTSTRAP_PUBLISH }}
         run: |
           if [ "$BOOTSTRAP" = true ]; then test -n "$NODE_AUTH_TOKEN"; fi
-          npm publish dist/readlint.com-*.tgz --provenance --access public
+          npm publish ./dist/readlint.com-*.tgz --provenance --access public
