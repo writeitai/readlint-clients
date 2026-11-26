@@ -4,9 +4,10 @@ readlint.com reviews articles and points out where readers might get lost. It
 flags unexplained terms, missing reasons to care, and ideas that appear out of
 order.
 
-This repository is for the open-source CLI, MCP server, and Python and
-TypeScript SDKs. The [product documentation](https://readlint.com/docs) will
-cover how to install and use them.
+Install and use the [CLI](docs/cli.md) or [Python SDK](docs/python.md) from
+the public releases. See the [product documentation](https://readlint.com/docs)
+for accounts and the hosted API, and [development notes](docs/development.md)
+for local checks and releases.
 
 To contribute, read [AGENTS.md](AGENTS.md) and the
 [shared project skills](.agents/skills).
