@@ -43,3 +43,28 @@ def test_exhausted_network_failure_is_sanitized(monkeypatch, capsys):
     assert problem["code"] == "network_error"
     assert "connection" in problem["message"]
     assert "rlk_secret" not in output.err
+
+
+@pytest.mark.parametrize(
+    "status,code",
+    [(401, "authentication_required"), (422, "validation_error"), (503, "api_error")],
+)
+def test_api_errors_and_recovery(monkeypatch, capsys, status, code):
+    monkeypatch.setattr(
+        httpx.Client,
+        "request",
+        lambda *a, **kw: httpx.Response(
+            status, json={"detail": {"code": "rlk_secret"}}
+        ),
+    )
+    monkeypatch.setattr("readlint.client.time.sleep", lambda _: None)
+    monkeypatch.setattr(
+        sys, "argv", ["readlint", "list", "--json", "--api-key", "rlk_secret"]
+    )
+    assert main() == 1
+    output = capsys.readouterr()
+    assert output.out == ""
+    error = json.loads(output.err)["error"]
+    assert error["code"] == code
+    assert error["message"]
+    assert "rlk_secret" not in output.err
