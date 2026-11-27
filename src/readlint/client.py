@@ -13,7 +13,7 @@ from uuid import UUID
 
 import httpx
 
-from readlint.types import Evaluation, EvaluationPage
+from readlint.types import AgentPermissions, Evaluation, EvaluationPage
 
 DEFAULT_BASE_URL = "https://readlint.com"
 
@@ -237,6 +237,12 @@ class Readlint:
                 raise _problem(response)
             time.sleep(delay)
         raise AssertionError("unreachable")
+
+    def get_agent_permissions(self) -> AgentPermissions:
+        """Read account-wide policy. Only the owner browser may change it."""
+        return cast(
+            AgentPermissions, self._request("GET", "/v1/agent-permissions", retry=True)
+        )
 
     def evaluate(
         self,

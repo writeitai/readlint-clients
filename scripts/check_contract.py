@@ -41,6 +41,7 @@ def check_coverage(schema):
                 assert name.endswith("_mcp") and operation in {
                     "POST /auth/device/code",
                     "POST /auth/device/token",
+                    "GET /v1/agent-permissions",
                 }, f"{name}: unsupported exclusion; review the public client surface"
 
 

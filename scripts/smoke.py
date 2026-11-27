@@ -180,6 +180,15 @@ def main():
         def do_GET(self):
             if not self.authorized():
                 return
+            if urlsplit(self.path).path == "/v1/agent-permissions":
+                return self.answer(
+                    200,
+                    {
+                        "agents_can_start_trials": True,
+                        "agents_can_confirm_paid_orders": False,
+                        "agents_can_cancel_plans": True,
+                    },
+                )
             if transient_reads[0]:
                 transient_reads[0] -= 1
                 return self.answer(503, {"detail": {"code": "unavailable"}})
@@ -269,7 +278,15 @@ def main():
                 )["code"]
                 == "idempotency_key_reused"
             )
+            assert (
+                cli("agent-permissions", "get")["agents_can_confirm_paid_orders"]
+                is False
+            )
             with Readlint("rlk_smoke", base_url=api) as client:
+                assert (
+                    client.get_agent_permissions()["agents_can_confirm_paid_orders"]
+                    is False
+                )
                 assert client.get_evaluation(EVALUATION_ID)["status"] == "complete"
                 assert (
                     client.evaluate("SDK text", idempotency_key="sdk-one")["report"]

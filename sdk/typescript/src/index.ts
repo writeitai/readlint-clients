@@ -1,11 +1,11 @@
 // Fetch transport and private credentials adapted from mountable's TypeScript SDK.
 import type {
   EvaluationResult, EvaluationPage, EvaluationReport, EvaluationSummary,
-  EvaluationRequest, DeviceCodeResponse, DeviceTokenResponse,
+  EvaluationRequest, DeviceCodeResponse, DeviceTokenResponse, AgentPermissions,
 } from "./gen/types.gen.js";
 export type {
   EvaluationResult as Evaluation, EvaluationPage, EvaluationReport, EvaluationSummary,
-  CheckResult, ProseResult, PhraseResult, DeviceCodeResponse, DeviceTokenResponse,
+  CheckResult, ProseResult, PhraseResult, DeviceCodeResponse, DeviceTokenResponse, AgentPermissions,
 } from "./gen/types.gen.js";
 
 const RECOVERY: Record<string, string> = {
@@ -120,6 +120,11 @@ export class Readlint {
       throw new TypeError("timeoutMs must be an integer from 1 to 4294967295; maxRetries must be a nonnegative integer.");
     }
     this.#fetch = options.fetch ?? globalThis.fetch;
+  }
+
+  /** Read account-wide policy. Changes require the owner's browser session. */
+  getAgentPermissions(): Promise<AgentPermissions> {
+    return this.#request("GET", "/v1/agent-permissions", true);
   }
 
   evaluate(article: string, options: EvaluateOptions): Promise<EvaluationResult> {

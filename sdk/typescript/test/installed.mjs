@@ -26,6 +26,7 @@ const server = createServer(async (request, response) => {
     return answer(200, fixtures.evaluation);
   }
   if (request.method === "DELETE") { stored.clear(); return answer(204); }
+  if (url.pathname === "/v1/agent-permissions") return answer(200, fixtures.agent_permissions);
   if (url.pathname === "/v1/evaluations") return answer(200, {...fixtures.page, items: stored.size ? fixtures.page.items : []});
   return stored.size ? answer(200, fixtures.evaluation) : answer(404, {detail: {code: "evaluation_not_found"}});
 });
@@ -33,6 +34,7 @@ await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
 try {
   const baseUrl = `http://127.0.0.1:${server.address().port}`;
   const client = new Readlint({baseUrl, apiKey: "rlk_installed"});
+  assert.deepEqual(await client.getAgentPermissions(), fixtures.agent_permissions);
   const result = await client.evaluate("# Article", {idempotencyKey: "installed-once"});
   assert.equal(result.id, fixtures.evaluation.id);
   assert.equal(effects, 1);

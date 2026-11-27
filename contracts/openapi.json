@@ -1,6 +1,32 @@
 {
   "components": {
     "schemas": {
+      "AgentPermissions": {
+        "properties": {
+          "agents_can_cancel_plans": {
+            "default": true,
+            "title": "Agents Can Cancel Plans",
+            "type": "boolean"
+          },
+          "agents_can_confirm_paid_orders": {
+            "default": true,
+            "title": "Agents Can Confirm Paid Orders",
+            "type": "boolean"
+          },
+          "agents_can_start_trials": {
+            "default": true,
+            "title": "Agents Can Start Trials",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "agents_can_start_trials",
+          "agents_can_confirm_paid_orders",
+          "agents_can_cancel_plans"
+        ],
+        "title": "AgentPermissions",
+        "type": "object"
+      },
       "Body_createDeviceCode": {
         "properties": {
           "client_id": {
@@ -726,6 +752,53 @@
         "tags": [
           "client",
           "device"
+        ]
+      }
+    },
+    "/v1/agent-permissions": {
+      "get": {
+        "operationId": "getAgentPermissions",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentPermissions"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "AccountBearer": []
+          }
+        ],
+        "summary": "Get Permissions",
+        "tags": [
+          "client",
+          "agent-permissions"
         ]
       }
     },

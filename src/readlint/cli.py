@@ -71,6 +71,18 @@ def parser() -> argparse.ArgumentParser:
         "--idempotency-key",
         help="Reuse this key and identical input to recover a timed-out submission",
     )
+    permissions = commands.add_parser(
+        "agent-permissions",
+        parents=[common],
+        help="Read the owner's agent billing policy",
+    )
+    permissions.add_subparsers(
+        dest="permissions_command", required=True, parser_class=Parser
+    ).add_parser(
+        "get",
+        parents=[common],
+        help="Read permissions; changes require the owner browser",
+    )
     listing = commands.add_parser("list", parents=[common], help="List evaluations")
     listing.add_argument("--limit", type=int)
     listing.add_argument("--offset", type=int, default=0)
@@ -137,6 +149,8 @@ def main() -> int:
                             title=args.title,
                             description=args.description,
                         )
+                    elif args.command == "agent-permissions":
+                        result = client.get_agent_permissions()
                     elif args.command == "list":
                         result = client.list_evaluations(
                             limit=args.limit, offset=args.offset

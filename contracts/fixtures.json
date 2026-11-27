@@ -43,5 +43,10 @@
     "access_token": "rlk_contract",
     "token_type": "Bearer",
     "expires_in": 3600
+  },
+  "agent_permissions": {
+    "agents_can_start_trials": true,
+    "agents_can_confirm_paid_orders": false,
+    "agents_can_cancel_plans": true
   }
 }

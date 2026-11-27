@@ -9,7 +9,7 @@ export async function exercise(module, fixtures) {
         query: Object.fromEntries(parsed.searchParams), headers: options.headers,
         body: options.body ? (options.headers["Content-Type"] === "application/json" ?
           JSON.parse(options.body) : Object.fromEntries(new URLSearchParams(options.body))) : null});
-      const name = parsed.pathname === "/auth/device/code" ? "device_code" :
+      const name = parsed.pathname === "/v1/agent-permissions" ? "agent_permissions" : parsed.pathname === "/auth/device/code" ? "device_code" :
         parsed.pathname === "/auth/device/token" ? "device_token" :
         options.method === "GET" && parsed.pathname === "/v1/evaluations" ? "page" : "evaluation";
       return new Response(options.method === "DELETE" ? null : JSON.stringify(fixtures[name]),
@@ -18,6 +18,7 @@ export async function exercise(module, fixtures) {
   assert.deepEqual(await client.createDeviceCode({hostname: "fixture-host", os: "fixture-os"}), fixtures.device_code);
   assert.deepEqual(await client.createDeviceToken("device-fixture"), fixtures.device_token);
   assert.deepEqual(await client.evaluate("# Article", {title: "Contract", description: "Context", idempotencyKey: "contract-key"}), fixtures.evaluation);
+  assert.deepEqual(await client.getAgentPermissions(), fixtures.agent_permissions);
   assert.deepEqual(await client.listEvaluations({limit: 3, offset: 2}), fixtures.page);
   assert.deepEqual(await client.getEvaluation(fixtures.evaluation.id), fixtures.evaluation);
   assert.equal(await client.deleteEvaluation(fixtures.evaluation.id), undefined);

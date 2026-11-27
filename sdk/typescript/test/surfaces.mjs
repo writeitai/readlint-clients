@@ -23,7 +23,7 @@ globalThis.fetch = async (url, options) => {
   const parsed = new URL(url);
   calls.push({method: options.method, path: parsed.pathname, query: Object.fromEntries(parsed.searchParams),
     headers: options.headers, body: options.body ? options.headers["Content-Type"] === "application/json" ? JSON.parse(options.body) : Object.fromEntries(new URLSearchParams(options.body)) : null});
-  const name = parsed.pathname === "/auth/device/code" ? "device_code" : parsed.pathname === "/auth/device/token" ? "device_token" : options.method === "GET" && parsed.pathname === "/v1/evaluations" ? "page" : "evaluation";
+  const name = parsed.pathname === "/v1/agent-permissions" ? "agent_permissions" : parsed.pathname === "/auth/device/code" ? "device_code" : parsed.pathname === "/auth/device/token" ? "device_token" : options.method === "GET" && parsed.pathname === "/v1/evaluations" ? "page" : "evaluation";
   const body = name === "device_code" ? {...fixtures[name], interval: 0} : fixtures[name];
   return new Response(options.method === "DELETE" ? null : JSON.stringify(body), {status: options.method === "DELETE" ? 204 : 200});
 };
@@ -31,11 +31,12 @@ try {
   const file = join(temporary, "post.md");
   await writeFile(file, "# Article");
   for (const args of [
-    ["login"], ["check", file, "--title", "Contract", "--description", "Context", "--idempotency-key", "contract-key"],
+    ["agent-permissions", "get"], ["login"], ["check", file, "--title", "Contract", "--description", "Context", "--idempotency-key", "contract-key"],
     ["list", "--limit", "3", "--offset", "2"], ["get", fixtures.evaluation.id], ["delete", fixtures.evaluation.id],
   ]) { assert.equal(await main(["--api-key", "rlk_contract", "--json", "--timeout", "0.1234", ...args]), 0); JSON.parse(writes.pop()); }
   // Device hostname/OS are platform-specific and validated separately.
-  calls[0].body.hostname = "fixture-host"; calls[0].body.os = "fixture-os";
+  const device = calls.find(call => call.path === "/auth/device/code");
+  device.body.hostname = "fixture-host"; device.body.os = "fixture-os";
   const node_cli = calls.splice(0);
   for (const [name, args] of [
     ["evaluate_article", {article: "# Article", title: "Contract", description: "Context", idempotency_key: "contract-key"}],

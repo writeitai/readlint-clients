@@ -5,6 +5,24 @@ export type ClientOptions = {
 };
 
 /**
+ * AgentPermissions
+ */
+export type AgentPermissions = {
+    /**
+     * Agents Can Cancel Plans
+     */
+    agents_can_cancel_plans: boolean;
+    /**
+     * Agents Can Confirm Paid Orders
+     */
+    agents_can_confirm_paid_orders: boolean;
+    /**
+     * Agents Can Start Trials
+     */
+    agents_can_start_trials: boolean;
+};
+
+/**
  * Body_createDeviceCode
  */
 export type BodyCreateDeviceCode = {
@@ -448,6 +466,35 @@ export type CreateDeviceTokenResponses = {
 };
 
 export type CreateDeviceTokenResponse = CreateDeviceTokenResponses[keyof CreateDeviceTokenResponses];
+
+export type GetAgentPermissionsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/agent-permissions';
+};
+
+export type GetAgentPermissionsErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type GetAgentPermissionsError = GetAgentPermissionsErrors[keyof GetAgentPermissionsErrors];
+
+export type GetAgentPermissionsResponses = {
+    /**
+     * Successful Response
+     */
+    200: AgentPermissions;
+};
+
+export type GetAgentPermissionsResponse = GetAgentPermissionsResponses[keyof GetAgentPermissionsResponses];
 
 export type ListEvaluationsV1EvaluationsGetData = {
     body?: never;
