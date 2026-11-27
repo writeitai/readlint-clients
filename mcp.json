@@ -2,7 +2,7 @@
   "mcpServers": {
     "readlint.com": {
       "command": "npx",
-      "args": ["--yes", "--package=https://github.com/writeitai/readlint-clients/releases/download/v0.3.0/readlint.com-0.3.0.tgz", "readlint", "mcp"]
+      "args": ["--yes", "readlint.com", "mcp"]
     }
   }
 }
