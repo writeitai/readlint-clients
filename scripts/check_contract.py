@@ -42,6 +42,11 @@ def check_coverage(schema):
                     "POST /auth/device/code",
                     "POST /auth/device/token",
                     "GET /v1/agent-permissions",
+                    "GET /v1/billing/status",
+                    "POST /v1/billing/quote",
+                    "POST /v1/billing/order",
+                    "POST /v1/billing/cancel",
+                    "POST /v1/billing/portal",
                 }, f"{name}: unsupported exclusion; review the public client surface"
 
 

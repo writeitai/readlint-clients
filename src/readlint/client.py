@@ -13,7 +13,16 @@ from uuid import UUID
 
 import httpx
 
-from readlint.types import AgentPermissions, Evaluation, EvaluationPage
+from readlint.types import (
+    AgentPermissions,
+    BillingCancellation,
+    BillingOrder,
+    BillingPortal,
+    BillingQuote,
+    BillingStatus,
+    Evaluation,
+    EvaluationPage,
+)
 
 DEFAULT_BASE_URL = "https://readlint.com"
 
@@ -24,7 +33,17 @@ _RECOVERY = {
     "evaluation_disabled": "Try again later with the same idempotency key and article.",
     "evaluation_context_exceeded": "Shorten the article and submit with a new key.",
     "evaluation_not_found": "List evaluations to find an unexpired evaluation ID.",
-    "idempotency_key_reused": "Use the original article and options, or a new key for a new evaluation.",
+    "idempotency_key_reused": "Reuse the original key and identical input to recover its outcome; use a new key only for a deliberate new instruction.",
+    "agent_orders_unavailable": "API-key paid orders are not available yet. Use the owner Billing page.",
+    "billing_disabled": "Billing is not available. Read billing status before trying again.",
+    "quote_expired": "Read billing status, then request a fresh quote for a new instruction.",
+    "quote_changed": "Review a fresh quote and its disclosure before confirming a new instruction.",
+    "quote_not_found": "Use a quote belonging to this account.",
+    "terms_version_mismatch": "Use the Terms version in a fresh quote.",
+    "paid_order_consent_required": "Explicit paid-order confirmation is required.",
+    "paid_order_already_confirmed": "Read the current order in billing status.",
+    "save_card_first": "Save a payment method using the returned payment link.",
+    "billing_address_required": "Complete the billing address using the returned payment link.",
     "validation_error": "Check the input and command help before retrying.",
     "invalid_page_size": "Choose a smaller --limit.",
     "authorization_pending": "Approve the code in the web app.",
@@ -46,20 +65,32 @@ class ReadlintError(Exception):
         *,
         status: int | None = None,
         evaluation_id: str | None = None,
+        action: str | None = None,
+        settings_url: str | None = None,
+        retryable: bool | None = None,
+        action_url: str | None = None,
     ) -> None:
         self.code = code
         self.message = message
         self.status = status
         self.evaluation_id = evaluation_id
+        self.action = action
+        self.settings_url = settings_url
+        self.retryable = retryable
+        self.action_url = action_url
         super().__init__(message)
 
     def as_dict(self) -> dict[str, object]:
-        return {
+        result: dict[str, object] = {
             "code": self.code,
             "message": self.message,
             "status": self.status,
             "evaluation_id": self.evaluation_id,
         }
+        for field in ("action", "settings_url", "retryable", "action_url"):
+            if (value := getattr(self, field)) is not None:
+                result[field] = value
+        return result
 
 
 def normalize_base_url(value: str) -> str:
@@ -87,7 +118,7 @@ def normalize_base_url(value: str) -> str:
     return value.rstrip("/")
 
 
-def _problem(response: httpx.Response) -> ReadlintError:
+def _problem(response: httpx.Response, base_url: str) -> ReadlintError:
     try:
         body = response.json()
     except ValueError:
@@ -96,6 +127,33 @@ def _problem(response: httpx.Response) -> ReadlintError:
         body = {}
     detail = body.get("detail")
     code = detail.get("code") if isinstance(detail, dict) else body.get("error")
+    # Only exact known denial sentences may cross the sanitized error boundary.
+    if (
+        response.status_code == 403
+        and isinstance(detail, dict)
+        and code == "agent_permission_disabled"
+    ):
+        for label in (
+            "Agents can start trials",
+            "Agents can confirm paid orders",
+            "Agents can cancel plans",
+        ):
+            message = f'The account has turned off "{label}".'
+            action = f'Ask the account owner to enable "{label}" in Settings → Agent permissions.'
+            if (
+                detail.get("message") == message
+                and detail.get("action") == action
+                and detail.get("settings_url") == "/app/settings#agent-permissions"
+                and detail.get("retryable") is False
+            ):
+                return ReadlintError(
+                    code,
+                    message,
+                    status=403,
+                    action=action,
+                    settings_url=base_url + "/app/settings#agent-permissions",
+                    retryable=False,
+                )
     # Never echo arbitrary server text, tokens, validation input, or HTML.
     if not isinstance(code, str) or code not in _RECOVERY:
         code = {
@@ -106,10 +164,30 @@ def _problem(response: httpx.Response) -> ReadlintError:
     recovery = _RECOVERY.get(
         code, "Retry later; for a submission reuse its key and identical input."
     )
+    action_url = None
+    if code in {"save_card_first", "billing_address_required"} and isinstance(
+        detail, dict
+    ):
+        value = detail.get("action_url")
+        if isinstance(value, str):
+            try:
+                url = urlsplit(value)
+                if (
+                    url.scheme == "https"
+                    and url.netloc in {"billing.stripe.com", "checkout.stripe.com"}
+                    and url.username is None
+                    and url.password is None
+                    and not url.fragment
+                    and not any(ord(c) < 33 for c in value)
+                ):
+                    action_url = value
+            except ValueError:
+                pass
     return ReadlintError(
         code,
         f"HTTP {response.status_code}: {code}. {recovery}",
         status=response.status_code,
+        action_url=action_url,
     )
 
 
@@ -230,11 +308,11 @@ class Readlint:
                     or response.status_code not in {429, 502, 503, 504}
                     or attempt == self.max_retries
                 ):
-                    raise _problem(response)
+                    raise _problem(response, self.base_url)
             delay = _retry_delay(response, attempt)
             if delay is None:
                 assert response is not None
-                raise _problem(response)
+                raise _problem(response, self.base_url)
             time.sleep(delay)
         raise AssertionError("unreachable")
 
@@ -243,6 +321,54 @@ class Readlint:
         return cast(
             AgentPermissions, self._request("GET", "/v1/agent-permissions", retry=True)
         )
+
+    def get_billing_status(self) -> BillingStatus:
+        return cast(
+            BillingStatus, self._request("GET", "/v1/billing/status", retry=True)
+        )
+
+    def create_billing_quote(self) -> BillingQuote:
+        """Return a nonbinding quote with the complete disclosure."""
+        return cast(BillingQuote, self._request("POST", "/v1/billing/quote"))
+
+    def confirm_billing_order(
+        self,
+        quote_id: str,
+        *,
+        terms_version: str,
+        paid_order_confirmed: bool,
+        idempotency_key: str,
+    ) -> BillingOrder:
+        """Explicit acceptance. Never automatically retries a financial instruction."""
+        if paid_order_confirmed is not True:
+            raise ValueError("paid_order_confirmed must be explicitly True.")
+        return cast(
+            BillingOrder,
+            self._request(
+                "POST",
+                "/v1/billing/order",
+                headers={"Idempotency-Key": str(UUID(idempotency_key))},
+                json={
+                    "quote_id": str(UUID(quote_id)),
+                    "terms_version": terms_version,
+                    "paid_order_confirmed": True,
+                },
+            ),
+        )
+
+    def cancel_billing_plan(self, *, idempotency_key: str) -> BillingCancellation:
+        return cast(
+            BillingCancellation,
+            self._request(
+                "POST",
+                "/v1/billing/cancel",
+                headers={"Idempotency-Key": str(UUID(idempotency_key))},
+                json={},
+            ),
+        )
+
+    def create_billing_portal(self) -> BillingPortal:
+        return cast(BillingPortal, self._request("POST", "/v1/billing/portal"))
 
     def evaluate(
         self,

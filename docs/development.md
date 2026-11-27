@@ -128,12 +128,12 @@ schema must match before client CI and releases pass.
 
 `contracts/clients.json` is the explicit operation inventory for all shipped
 clients: Python and Node CLI, Python and TypeScript SDK, Python and Node MCP.
-Both CLIs and SDKs expose all six operations. Python's device flow is exposed by
+Both CLIs and SDKs expose all twelve public operations. Python's device flow is exposed by
 `readlint.auth.login`, which handles polling and saved login rather than
 returning raw device tokens. TypeScript exposes both low-level device calls.
-Browser account/key management, browser approval, billing, health, deployment
+Browser account/key management, browser approval, health, deployment
 and internal routes stay outside the exported client contract. Both MCP servers expose the same four curated evaluation tools. Device-code
-creation and polling are intentionally excluded from MCP: sign in with CLI
+creation, polling, policy and billing are intentionally excluded from MCP: sign in with CLI
 login or pass an API key. The inventory records these exclusions. CI compares
 the exact Python/Node catalogues and enforces the same 6,000-byte budget.
 

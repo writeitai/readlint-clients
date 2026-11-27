@@ -10,7 +10,7 @@ const json = (body, status = 200, headers = {}) => new Response(JSON.stringify(b
 
 test("all operations expose their inputs and return typed JSON", async () => {
   const calls = await exercise({Readlint}, fixtures);
-  assert.equal(calls.length, 7);
+  assert.equal(calls.length, 12);
   assert.equal(calls[2].headers.Authorization, "Bearer rlk_contract");
   assert.equal(calls[0].headers.Authorization, undefined);
   assert.deepEqual(calls[2].body, {article: "# Article", title: "Contract", description: "Context"});

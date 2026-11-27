@@ -1,11 +1,11 @@
 // Fetch transport and private credentials adapted from mountable's TypeScript SDK.
 import type {
   EvaluationResult, EvaluationPage, EvaluationReport, EvaluationSummary,
-  EvaluationRequest, DeviceCodeResponse, DeviceTokenResponse, AgentPermissions,
+  EvaluationRequest, DeviceCodeResponse, DeviceTokenResponse, AgentPermissions, AgentBillingStatus, AgentQuote, OrderAccepted, Cancellation, PortalLink,
 } from "./gen/types.gen.js";
 export type {
   EvaluationResult as Evaluation, EvaluationPage, EvaluationReport, EvaluationSummary,
-  CheckResult, ProseResult, PhraseResult, DeviceCodeResponse, DeviceTokenResponse, AgentPermissions,
+  CheckResult, ProseResult, PhraseResult, DeviceCodeResponse, DeviceTokenResponse, AgentPermissions, AgentBillingStatus, AgentQuote, OrderAccepted, Cancellation, PortalLink,
 } from "./gen/types.gen.js";
 
 const RECOVERY: Record<string, string> = {
@@ -15,7 +15,17 @@ const RECOVERY: Record<string, string> = {
   evaluation_disabled: "Try again later with the same idempotency key and article.",
   evaluation_context_exceeded: "Shorten the article and submit with a new key.",
   evaluation_not_found: "List evaluations to find an unexpired evaluation ID.",
-  idempotency_key_reused: "Use the original article and options, or a new key for a new evaluation.",
+  idempotency_key_reused: "Reuse the original key and identical input to recover its outcome; use a new key only for a deliberate new instruction.",
+  agent_orders_unavailable: "API-key paid orders are not available yet. Use the owner Billing page.",
+  billing_disabled: "Billing is not available. Read billing status before trying again.",
+  quote_expired: "Read billing status, then request a fresh quote for a new instruction.",
+  quote_changed: "Review a fresh quote and its disclosure before confirming a new instruction.",
+  quote_not_found: "Use a quote belonging to this account.",
+  terms_version_mismatch: "Use the Terms version in a fresh quote.",
+  paid_order_consent_required: "Explicit paid-order confirmation is required.",
+  paid_order_already_confirmed: "Read the current order in billing status.",
+  save_card_first: "Save a payment method using the returned payment link.",
+  billing_address_required: "Complete the billing address using the returned payment link.",
   validation_error: "Check the input before retrying.",
   invalid_request: "Check the request fields before trying again.",
   invalid_page_size: "Choose a smaller limit.",
@@ -35,6 +45,7 @@ export class ReadlintError extends Error {
     message: string,
     readonly status: number | null = null,
     readonly evaluationId: string | null = null,
+    readonly details: {action?: string; settings_url?: string; retryable?: false; action_url?: string} = {},
   ) { super(message); }
 }
 
@@ -73,7 +84,7 @@ function origin(value: string): string {
 
 function uuid(value: string): string {
   if (typeof value !== "string" || value.length !== 36 || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)) {
-    throw new TypeError("Use a valid evaluation UUID.");
+    throw new TypeError("Use a valid UUID.");
   }
   return value.toLowerCase();
 }
@@ -82,12 +93,29 @@ function object(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function problem(status: number, body: unknown): ReadlintError {
+function problem(status: number, body: unknown, baseUrl: string): ReadlintError {
   const raw = object(body) ? (object(body.detail) ? body.detail.code : body.error) : null;
+  const detail = object(body) && object(body.detail) ? body.detail : null;
+  if (status === 403 && detail && raw === "agent_permission_disabled") {
+    for (const label of ["Agents can start trials", "Agents can confirm paid orders", "Agents can cancel plans"]) {
+      const message = `The account has turned off "${label}".`;
+      const action = `Ask the account owner to enable "${label}" in Settings → Agent permissions.`;
+      if (detail.message === message && detail.action === action && detail.settings_url === "/app/settings#agent-permissions" && detail.retryable === false) {
+        return new ReadlintError(raw, message, 403, null, {action, settings_url: baseUrl + "/app/settings#agent-permissions", retryable: false});
+      }
+    }
+  }
   const code = typeof raw === "string" && Object.hasOwn(RECOVERY, raw) ? raw :
     ({401: "authentication_required", 422: "validation_error", 429: "rate_limited"}[status] ?? "api_error");
+  let action_url: string | undefined;
+  if (["save_card_first", "billing_address_required"].includes(code) && typeof detail?.action_url === "string") {
+    try {
+      const url = new URL(detail.action_url);
+      if (url.protocol === "https:" && ["billing.stripe.com", "checkout.stripe.com"].includes(url.host) && !url.username && !url.password && !url.hash && !/[\x00-\x20]/.test(detail.action_url)) action_url = detail.action_url;
+    } catch { /* omit an unsafe recovery URL */ }
+  }
   return new ReadlintError(code,
-    `HTTP ${status}: ${code}. ${RECOVERY[code] ?? "Retry later; for a submission reuse its key and identical input."}`, status);
+    `HTTP ${status}: ${code}. ${RECOVERY[code] ?? "Retry later; for a submission reuse its key and identical input."}`, status, null, action_url ? {action_url} : {});
 }
 
 function retryDelay(response: Response | undefined, attempt: number): number | null {
@@ -125,6 +153,28 @@ export class Readlint {
   /** Read account-wide policy. Changes require the owner's browser session. */
   getAgentPermissions(): Promise<AgentPermissions> {
     return this.#request("GET", "/v1/agent-permissions", true);
+  }
+
+  getBillingStatus(): Promise<AgentBillingStatus> {
+    return this.#request("GET", "/v1/billing/status", true);
+  }
+
+  createBillingQuote(): Promise<AgentQuote> {
+    return this.#request("POST", "/v1/billing/quote", false);
+  }
+
+  /** Explicit paid instruction; never automatically retried. */
+  confirmBillingOrder(quoteId: string, options: {termsVersion: string; paidOrderConfirmed: true; idempotencyKey: string}): Promise<OrderAccepted> {
+    if (options?.paidOrderConfirmed !== true) throw new TypeError("paidOrderConfirmed must be explicitly true.");
+    return this.#request("POST", "/v1/billing/order", false, JSON.stringify({quote_id: uuid(quoteId), terms_version: options.termsVersion, paid_order_confirmed: true}), {"Content-Type": "application/json", "Idempotency-Key": uuid(options.idempotencyKey)});
+  }
+
+  cancelBillingPlan(options: {idempotencyKey: string}): Promise<Cancellation> {
+    return this.#request("POST", "/v1/billing/cancel", false, "{}", {"Content-Type": "application/json", "Idempotency-Key": uuid(options.idempotencyKey)});
+  }
+
+  createBillingPortal(): Promise<PortalLink> {
+    return this.#request("POST", "/v1/billing/portal", false);
   }
 
   evaluate(article: string, options: EvaluateOptions): Promise<EvaluationResult> {
@@ -207,12 +257,12 @@ export class Readlint {
           throw new ReadlintError("evaluation_failed", "Evaluation failed. Read its ID for details; a deliberate new attempt needs a new idempotency key.", response.status, id);
         }
         if (!retry || ![429, 502, 503, 504].includes(response.status) || attempt === this.#maxRetries) {
-          throw problem(response.status, json);
+          throw problem(response.status, json, this.baseUrl);
         }
       }
       const delay = retryDelay(response, attempt);
       if (delay === null) {
-        if (response) throw problem(response.status, json);
+        if (response) throw problem(response.status, json, this.baseUrl);
         throw new ReadlintError("network_error", "No reliable response. Check your connection; for a submission reuse its key and identical input.");
       }
       await new Promise(resolve => setTimeout(resolve, delay));

@@ -6,7 +6,7 @@ import os
 import sys
 from pathlib import Path
 from typing import NoReturn
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from readlint import Readlint, ReadlintError, __version__
 from readlint.auth import credentials_path, load_credentials, login
@@ -83,6 +83,29 @@ def parser() -> argparse.ArgumentParser:
         parents=[common],
         help="Read permissions; changes require the owner browser",
     )
+    billing = commands.add_parser(
+        "billing", parents=[common], help="Read billing or send an explicit instruction"
+    )
+    actions = billing.add_subparsers(
+        dest="billing_command", required=True, parser_class=Parser
+    )
+    for name in ("status", "quote", "portal", "order", "cancel"):
+        action = actions.add_parser(name, parents=[common])
+        if name in {"order", "cancel"}:
+            action.add_argument(
+                "--idempotency-key",
+                required=True,
+                help="Retain this UUID and reuse it with identical input after a lost response",
+            )
+        if name == "order":
+            action.add_argument("--quote-id", required=True)
+            action.add_argument("--terms-version", required=True)
+            action.add_argument(
+                "--agree-to-pay",
+                action="store_true",
+                required=True,
+                help="Explicitly accept the quoted paid order and monthly renewal",
+            )
     listing = commands.add_parser("list", parents=[common], help="List evaluations")
     listing.add_argument("--limit", type=int)
     listing.add_argument("--offset", type=int, default=0)
@@ -151,6 +174,27 @@ def main() -> int:
                         )
                     elif args.command == "agent-permissions":
                         result = client.get_agent_permissions()
+                    elif args.command == "billing":
+                        if args.billing_command == "status":
+                            result = client.get_billing_status()
+                        elif args.billing_command == "quote":
+                            result = client.create_billing_quote()
+                        elif args.billing_command == "portal":
+                            result = client.create_billing_portal()
+                        else:
+                            submission_key = str(UUID(args.idempotency_key))
+                            print(f"Idempotency key: {submission_key}", file=sys.stderr)
+                            if args.billing_command == "cancel":
+                                result = client.cancel_billing_plan(
+                                    idempotency_key=submission_key
+                                )
+                            else:
+                                result = client.confirm_billing_order(
+                                    args.quote_id,
+                                    terms_version=args.terms_version,
+                                    paid_order_confirmed=args.agree_to_pay,
+                                    idempotency_key=submission_key,
+                                )
                     elif args.command == "list":
                         result = client.list_evaluations(
                             limit=args.limit, offset=args.offset
@@ -184,7 +228,14 @@ def main() -> int:
     print(
         json.dumps({"error": problem})
         if machine
-        else f"{problem['code']}: {problem['message']}",
+        else f"{problem['code']}: {problem['message']}"
+        + (
+            f" {problem['action']} {problem['settings_url']}"
+            if "settings_url" in problem
+            else f" {problem['action_url']}"
+            if "action_url" in problem
+            else ""
+        ),
         file=sys.stderr,
     )
     return 1

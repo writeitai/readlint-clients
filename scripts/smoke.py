@@ -110,6 +110,9 @@ async def mcp_workflow(env, *, key=None, flag=None, error=None):
 
 
 def main():
+    billing_fixtures = json.loads(
+        (Path(__file__).resolve().parents[1] / "contracts/fixtures.json").read_text()
+    )
     stored = {}
     device_polls = []
     drop_response = [True]
@@ -156,6 +159,10 @@ def main():
                 )
             if not self.authorized():
                 return
+            if self.path.startswith("/v1/billing/"):
+                return self.answer(
+                    200, billing_fixtures["billing_" + self.path.rsplit("/", 1)[1]]
+                )
             key = self.headers["Idempotency-Key"]
             if key in stored and stored[key] != raw:
                 return self.answer(409, {"detail": {"code": "idempotency_key_reused"}})
@@ -180,6 +187,8 @@ def main():
         def do_GET(self):
             if not self.authorized():
                 return
+            if self.path == "/v1/billing/status":
+                return self.answer(200, billing_fixtures["billing_status"])
             if urlsplit(self.path).path == "/v1/agent-permissions":
                 return self.answer(
                     200,
@@ -282,7 +291,51 @@ def main():
                 cli("agent-permissions", "get")["agents_can_confirm_paid_orders"]
                 is False
             )
+            for args, expected in [
+                (("billing", "status"), "billing_status"),
+                (("billing", "quote"), "billing_quote"),
+                (("billing", "portal"), "billing_portal"),
+                (
+                    (
+                        "billing",
+                        "order",
+                        "--quote-id",
+                        EVALUATION_ID,
+                        "--terms-version",
+                        "2026-11-25",
+                        "--agree-to-pay",
+                        "--idempotency-key",
+                        EVALUATION_ID,
+                    ),
+                    "billing_order",
+                ),
+                (
+                    ("billing", "cancel", "--idempotency-key", EVALUATION_ID),
+                    "billing_cancel",
+                ),
+            ]:
+                assert cli(*args) == billing_fixtures[expected]
             with Readlint("rlk_smoke", base_url=api) as client:
+                assert client.get_billing_status() == billing_fixtures["billing_status"]
+                assert (
+                    client.create_billing_quote() == billing_fixtures["billing_quote"]
+                )
+                assert (
+                    client.create_billing_portal() == billing_fixtures["billing_portal"]
+                )
+                assert (
+                    client.confirm_billing_order(
+                        EVALUATION_ID,
+                        terms_version="2026-11-25",
+                        paid_order_confirmed=True,
+                        idempotency_key=EVALUATION_ID,
+                    )
+                    == billing_fixtures["billing_order"]
+                )
+                assert (
+                    client.cancel_billing_plan(idempotency_key=EVALUATION_ID)
+                    == billing_fixtures["billing_cancel"]
+                )
                 assert (
                     client.get_agent_permissions()["agents_can_confirm_paid_orders"]
                     is False

@@ -85,6 +85,25 @@ Command reference: https://readlint.com/docs/cli
 `readlint agent-permissions get --json` reads the account's saved billing
 choices. Only the owner can change them in Settings → Agent permissions.
 This command does not start a trial, confirm an order or cancel a plan;
-agent billing commands are still being built. A disabled billing choice does
+trial setup and paid orders through keys are still being prepared. A disabled billing choice does
 not stop ordinary checks from consuming credits or incurring usage charges.
 MCP's four evaluation tools are unchanged.
+
+### Billing instructions
+
+Read `readlint billing status --json` and `readlint agent-permissions get --json`.
+Get a nonbinding quote with `readlint billing quote --json`; present its full
+disclosure and dated legal links before any paid acceptance. An order command
+requires `--quote-id`, `--terms-version`, `--agree-to-pay` and an explicit
+`--idempotency-key` UUID. Key orders remain gated pending email/legal checks.
+Cancellation uses `readlint billing cancel --idempotency-key UUID --json`.
+Retain each mutation's UUID and exact input; read status after a lost response,
+then reuse the same instruction to recover. Never create a fresh quote or UUID
+merely to retry. A completed receipt returns its original outcome plus current
+state and cannot cancel a later plan.
+
+A permission denial is not retried. Preserve the exact setting/action and safe
+settings URL. `billing portal` and status invoice URLs are private human payment
+links: return them to the user, never launch a browser automatically or commit
+links to logs. Ordinary funded checks remain billable with switches off, and
+there are no spending caps. MCP stays limited to four evaluation tools.

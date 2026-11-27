@@ -62,7 +62,7 @@ def validate_calls(calls, client, document=SCHEMA):
             where, key = parameter["in"], parameter["name"]
             value = {"path": {"evaluation_id": ID}, "query": query, "header": headers}[
                 where
-            ][key]
+            ][key.lower() if where == "header" else key]
             if where == "query":
                 value = int(value)
             jsonschema.validate(
@@ -122,7 +122,9 @@ def transport(monkeypatch):
         if request.method == "DELETE":
             return httpx.Response(204)
         fixture = (
-            "agent_permissions"
+            "billing_" + path.rsplit("/", 1)[1]
+            if path.startswith("/v1/billing/")
+            else "agent_permissions"
             if path == "/v1/agent-permissions"
             else "device_code"
             if path == "/auth/device/code"
@@ -153,6 +155,21 @@ def test_python_requests(transport):
             == FIXTURES["evaluation"]
         )
         assert client.get_agent_permissions() == FIXTURES["agent_permissions"]
+        assert client.get_billing_status() == FIXTURES["billing_status"]
+        assert client.create_billing_quote() == FIXTURES["billing_quote"]
+        assert (
+            client.confirm_billing_order(
+                ID,
+                terms_version="2026-11-25",
+                paid_order_confirmed=True,
+                idempotency_key=ID,
+            )
+            == FIXTURES["billing_order"]
+        )
+        assert (
+            client.cancel_billing_plan(idempotency_key=ID) == FIXTURES["billing_cancel"]
+        )
+        assert client.create_billing_portal() == FIXTURES["billing_portal"]
         assert client.list_evaluations(limit=3, offset=2) == FIXTURES["page"]
         assert client.get_evaluation(ID) == FIXTURES["evaluation"]
         client.delete_evaluation(ID)
@@ -167,6 +184,24 @@ def test_cli_requests(transport, monkeypatch, capsys):
     for arguments, expected in [
         (["login"], {"signed_in": True}),
         (["agent-permissions", "get"], FIXTURES["agent_permissions"]),
+        (["billing", "status"], FIXTURES["billing_status"]),
+        (["billing", "quote"], FIXTURES["billing_quote"]),
+        (
+            [
+                "billing",
+                "order",
+                "--quote-id",
+                ID,
+                "--terms-version",
+                "2026-11-25",
+                "--agree-to-pay",
+                "--idempotency-key",
+                ID,
+            ],
+            FIXTURES["billing_order"],
+        ),
+        (["billing", "cancel", "--idempotency-key", ID], FIXTURES["billing_cancel"]),
+        (["billing", "portal"], FIXTURES["billing_portal"]),
         (
             [
                 "evaluate",
@@ -215,7 +250,9 @@ def test_inventory_and_response_fixtures():
                 assert "204" in op["responses"]
                 continue
             fixture = (
-                "agent_permissions"
+                "billing_" + path.rsplit("/", 1)[1]
+                if path.startswith("/v1/billing/")
+                else "agent_permissions"
                 if path == "/v1/agent-permissions"
                 else "device_code"
                 if path == "/auth/device/code"
@@ -262,7 +299,9 @@ def assert_type(annotation, schema):
         for item, branch in zip(get_args(annotation), schema["anyOf"], strict=True):
             assert_type(item, branch)
     elif origin is Literal:
-        assert set(get_args(annotation)) == set(schema["enum"])
+        assert set(get_args(annotation)) == set(
+            schema.get("enum", [schema.get("const")])
+        )
     elif origin is list:
         assert schema["type"] == "array"
         assert_type(get_args(annotation)[0], schema["items"])
@@ -285,6 +324,11 @@ def assert_type(annotation, schema):
 def test_python_public_types_match_response_schema():
     for name, schema in [
         ("AgentPermissions", "AgentPermissions"),
+        ("BillingStatus", "AgentBillingStatus"),
+        ("BillingQuote", "AgentQuote"),
+        ("BillingOrder", "OrderAccepted"),
+        ("BillingCancellation", "Cancellation"),
+        ("BillingPortal", "PortalLink"),
         ("Evaluation", "EvaluationResult"),
         ("EvaluationPage", "EvaluationPage"),
     ]:

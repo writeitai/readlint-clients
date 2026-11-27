@@ -18,6 +18,7 @@ const server = createServer(async (request, response) => {
   if (request.url === "/auth/device/token") return ++pending === 1 ? answer(400, {error: "authorization_pending"}) : answer(200, {...fixtures.device_token, access_token: "rlk_installed"});
   if (request.headers.authorization !== "Bearer rlk_installed") return answer(401, {detail: {code: "authentication_required"}});
   const url = new URL(request.url, "http://localhost");
+  if (url.pathname.startsWith("/v1/billing/")) return answer(200, fixtures["billing_" + url.pathname.split("/").at(-1)]);
   if (request.method === "POST") {
     const key = request.headers["idempotency-key"];
     if (keys.has(key) && keys.get(key) !== raw) return answer(409, {detail: {code: "idempotency_key_reused"}});
@@ -49,6 +50,11 @@ try {
   const saved = JSON.parse(await readFile(credentials, "utf8")); assert.equal(saved.api, baseUrl);
   result = await run(["agent-permissions", "get", "--json"]);
   assert.equal(result.code, 0, result.err); assert.deepEqual(JSON.parse(result.out), fixtures.agent_permissions);
+  for (const [args, expected] of [
+    [["billing", "status"], fixtures.billing_status], [["billing", "quote"], fixtures.billing_quote], [["billing", "portal"], fixtures.billing_portal],
+    [["billing", "order", "--quote-id", fixtures.evaluation.id, "--terms-version", "2026-11-25", "--agree-to-pay", "--idempotency-key", fixtures.evaluation.id], fixtures.billing_order],
+    [["billing", "cancel", "--idempotency-key", fixtures.evaluation.id], fixtures.billing_cancel],
+  ]) { result = await run([...args, "--json"]); assert.equal(result.code, 0, result.err); assert.deepEqual(JSON.parse(result.out), expected); }
   const file = join(temporary, "post.md"); await writeFile(file, "# Article");
   result = await run(["check", file, "--idempotency-key", "cli-once", "--json"]);
   assert.equal(result.code, 0, result.err); assert.equal(JSON.parse(result.out).id, fixtures.evaluation.id); assert.equal(effects, 1); assert.match(result.err, /cli-once/);

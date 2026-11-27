@@ -18,6 +18,7 @@ const server = createServer(async (request, response) => {
   let raw = "";
   for await (const chunk of request) raw += chunk;
   const url = new URL(request.url, "http://localhost");
+  if (url.pathname.startsWith("/v1/billing/")) return answer(200, fixtures["billing_" + url.pathname.split("/").at(-1)]);
   if (request.method === "POST") {
     const key = request.headers["idempotency-key"];
     if (stored.has(key) && stored.get(key) !== raw) return answer(409, {detail: {code: "idempotency_key_reused"}});
@@ -35,6 +36,11 @@ try {
   const baseUrl = `http://127.0.0.1:${server.address().port}`;
   const client = new Readlint({baseUrl, apiKey: "rlk_installed"});
   assert.deepEqual(await client.getAgentPermissions(), fixtures.agent_permissions);
+  assert.deepEqual(await client.getBillingStatus(), fixtures.billing_status);
+  assert.deepEqual(await client.createBillingQuote(), fixtures.billing_quote);
+  assert.deepEqual(await client.createBillingPortal(), fixtures.billing_portal);
+  assert.deepEqual(await client.confirmBillingOrder(fixtures.evaluation.id, {termsVersion: "2026-11-25", paidOrderConfirmed: true, idempotencyKey: fixtures.evaluation.id}), fixtures.billing_order);
+  assert.deepEqual(await client.cancelBillingPlan({idempotencyKey: fixtures.evaluation.id}), fixtures.billing_cancel);
   const result = await client.evaluate("# Article", {idempotencyKey: "installed-once"});
   assert.equal(result.id, fixtures.evaluation.id);
   assert.equal(effects, 1);
