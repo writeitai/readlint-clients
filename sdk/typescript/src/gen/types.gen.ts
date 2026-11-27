@@ -5,6 +5,78 @@ export type ClientOptions = {
 };
 
 /**
+ * AgentBillingStatus
+ */
+export type AgentBillingStatus = {
+    /**
+     * Access Active
+     */
+    access_active: boolean;
+    /**
+     * Cancelled At
+     */
+    cancelled_at: string | null;
+    /**
+     * Credits Remaining Cents
+     */
+    credits_remaining_cents: number;
+    /**
+     * Enabled
+     */
+    enabled: boolean;
+    /**
+     * Fractional Balance Cents
+     */
+    fractional_balance_cents: number;
+    /**
+     * Invoices
+     */
+    invoices: Array<InvoiceView>;
+    /**
+     * Order Id
+     */
+    order_id: string | null;
+    /**
+     * Order State
+     */
+    order_state: 'none' | 'scheduled' | 'payment_pending' | 'requires_action' | 'active' | 'cancelled';
+    /**
+     * Paid Order Confirmed
+     */
+    paid_order_confirmed: boolean;
+    payment_action: PaymentAction | null;
+    /**
+     * Payment Method Ready
+     */
+    payment_method_ready: boolean;
+    pending_setup: PendingSetup | null;
+    /**
+     * Period Ends At
+     */
+    period_ends_at: string | null;
+    /**
+     * Period Kind
+     */
+    period_kind: 'trial' | 'paid' | null;
+    /**
+     * Suspended
+     */
+    suspended: boolean;
+    /**
+     * Trial Available
+     */
+    trial_available: boolean;
+    /**
+     * Trial Ends At
+     */
+    trial_ends_at: string | null;
+    /**
+     * Usage Above Credits Cents
+     */
+    usage_above_credits_cents: number;
+};
+
+/**
  * AgentPermissions
  */
 export type AgentPermissions = {
@@ -20,6 +92,109 @@ export type AgentPermissions = {
      * Agents Can Start Trials
      */
     agents_can_start_trials: boolean;
+};
+
+/**
+ * AgentQuote
+ */
+export type AgentQuote = {
+    /**
+     * Affirmation
+     */
+    affirmation: string;
+    /**
+     * Cancellation Terms
+     */
+    cancellation_terms: string;
+    /**
+     * Credit Expiry
+     */
+    credit_expiry: string;
+    /**
+     * Currency
+     */
+    currency: 'usd';
+    /**
+     * Disclosure Text
+     */
+    disclosure_text: string;
+    /**
+     * Disclosure Version
+     */
+    disclosure_version: string;
+    /**
+     * Expires At
+     */
+    expires_at: string;
+    /**
+     * First Charge Timing
+     */
+    first_charge_timing: string;
+    /**
+     * Monthly Credits Cents
+     */
+    monthly_credits_cents: number;
+    /**
+     * Privacy Url
+     */
+    privacy_url: string;
+    /**
+     * Privacy Version
+     */
+    privacy_version: string;
+    /**
+     * Quote Id
+     */
+    quote_id: string;
+    /**
+     * Renewal Terms
+     */
+    renewal_terms: string;
+    /**
+     * Subtotal Cents
+     */
+    subtotal_cents: number;
+    /**
+     * Tax Cents
+     */
+    tax_cents: number;
+    /**
+     * Terms Url
+     */
+    terms_url: string;
+    /**
+     * Terms Version
+     */
+    terms_version: string;
+    /**
+     * Total Cents
+     */
+    total_cents: number;
+    /**
+     * Usage Rate Cents Per Million
+     */
+    usage_rate_cents_per_million: number;
+};
+
+/**
+ * BillingErrorDetail
+ */
+export type BillingErrorDetail = {
+    /**
+     * Action Url
+     */
+    action_url?: string | null;
+    /**
+     * Code
+     */
+    code: string;
+};
+
+/**
+ * BillingErrorResponse
+ */
+export type BillingErrorResponse = {
+    detail: BillingErrorDetail;
 };
 
 /**
@@ -56,6 +231,25 @@ export type BodyCreateDeviceToken = {
      * Grant Type
      */
     grant_type: string;
+};
+
+/**
+ * Cancellation
+ */
+export type Cancellation = {
+    /**
+     * Cancelled
+     */
+    cancelled: true;
+    current: AgentBillingStatus;
+    /**
+     * Order Id
+     */
+    order_id: string | null;
+    /**
+     * Trial Period Id
+     */
+    trial_period_id: string | null;
 };
 
 /**
@@ -126,6 +320,13 @@ export type DeviceTokenResponse = {
      * Token Type
      */
     token_type?: string;
+};
+
+/**
+ * EmptyInstruction
+ */
+export type EmptyInstruction = {
+    [key: string]: never;
 };
 
 /**
@@ -307,6 +508,36 @@ export type InvalidField = {
 };
 
 /**
+ * InvoiceView
+ */
+export type InvoiceView = {
+    /**
+     * Amount Paid Cents
+     */
+    amount_paid_cents: number;
+    /**
+     * Amount Remaining Cents
+     */
+    amount_remaining_cents: number | null;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Status
+     */
+    status: string;
+    /**
+     * Subtotal Cents
+     */
+    subtotal_cents: number;
+    /**
+     * Url
+     */
+    url: string | null;
+};
+
+/**
  * OAuthError
  */
 export type OAuthError = {
@@ -314,6 +545,120 @@ export type OAuthError = {
      * Error
      */
     error: string;
+};
+
+/**
+ * OrderAccepted
+ */
+export type OrderAccepted = {
+    /**
+     * Accepted
+     */
+    accepted: true;
+    /**
+     * Accepted At
+     */
+    accepted_at: string;
+    /**
+     * Accepted State
+     */
+    accepted_state: 'scheduled' | 'payment_pending' | null;
+    current: AgentBillingStatus;
+    /**
+     * Order Id
+     */
+    order_id: string;
+    /**
+     * Retryable
+     */
+    retryable: boolean;
+};
+
+/**
+ * PaidInstruction
+ */
+export type PaidInstruction = {
+    /**
+     * Paid Order Confirmed
+     */
+    paid_order_confirmed: boolean;
+    /**
+     * Quote Id
+     */
+    quote_id: string;
+    /**
+     * Terms Version
+     */
+    terms_version: string;
+};
+
+/**
+ * PaymentAction
+ */
+export type PaymentAction = {
+    /**
+     * Action Url
+     */
+    action_url: string;
+    /**
+     * Reason
+     */
+    reason: 'payment_authentication_required' | 'payment_method_required';
+};
+
+/**
+ * PendingSetup
+ */
+export type PendingSetup = {
+    /**
+     * Action Url
+     */
+    action_url: string | null;
+    /**
+     * Attempt Id
+     */
+    attempt_id: string;
+    /**
+     * Expires At
+     */
+    expires_at: string;
+    /**
+     * State
+     */
+    state: 'pending' | 'complete' | 'expired' | 'blocked';
+};
+
+/**
+ * PermissionDenial
+ */
+export type PermissionDenial = {
+    /**
+     * Action
+     */
+    action: string;
+    /**
+     * Code
+     */
+    code: 'agent_permission_disabled';
+    /**
+     * Message
+     */
+    message: string;
+    /**
+     * Retryable
+     */
+    retryable: false;
+    /**
+     * Settings Url
+     */
+    settings_url: '/app/settings#agent-permissions';
+};
+
+/**
+ * PermissionErrorResponse
+ */
+export type PermissionErrorResponse = {
+    detail: PermissionDenial;
 };
 
 /**
@@ -332,6 +677,16 @@ export type PhraseResult = {
      * Where
      */
     where: string;
+};
+
+/**
+ * PortalLink
+ */
+export type PortalLink = {
+    /**
+     * Url
+     */
+    url: string;
 };
 
 /**
@@ -495,6 +850,253 @@ export type GetAgentPermissionsResponses = {
 };
 
 export type GetAgentPermissionsResponse = GetAgentPermissionsResponses[keyof GetAgentPermissionsResponses];
+
+export type CancelBillingPlanData = {
+    body: EmptyInstruction;
+    headers: {
+        /**
+         * Idempotency-Key
+         */
+        'Idempotency-Key': string;
+    };
+    path?: never;
+    query?: never;
+    url: '/v1/billing/cancel';
+};
+
+export type CancelBillingPlanErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Response 403 Cancelbillingplan
+     *
+     * Forbidden
+     */
+    403: PermissionErrorResponse | ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: BillingErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ValidationResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type CancelBillingPlanError = CancelBillingPlanErrors[keyof CancelBillingPlanErrors];
+
+export type CancelBillingPlanResponses = {
+    /**
+     * Successful Response
+     */
+    200: Cancellation;
+};
+
+export type CancelBillingPlanResponse = CancelBillingPlanResponses[keyof CancelBillingPlanResponses];
+
+export type ConfirmBillingOrderData = {
+    body: PaidInstruction;
+    headers: {
+        /**
+         * Idempotency-Key
+         */
+        'Idempotency-Key': string;
+    };
+    path?: never;
+    query?: never;
+    url: '/v1/billing/order';
+};
+
+export type ConfirmBillingOrderErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Response 403 Confirmbillingorder
+     *
+     * Forbidden
+     */
+    403: PermissionErrorResponse | ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: BillingErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ValidationResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type ConfirmBillingOrderError = ConfirmBillingOrderErrors[keyof ConfirmBillingOrderErrors];
+
+export type ConfirmBillingOrderResponses = {
+    /**
+     * Successful Response
+     */
+    200: OrderAccepted;
+};
+
+export type ConfirmBillingOrderResponse = ConfirmBillingOrderResponses[keyof ConfirmBillingOrderResponses];
+
+export type CreateBillingPortalData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/billing/portal';
+};
+
+export type CreateBillingPortalErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Response 403 Createbillingportal
+     *
+     * Forbidden
+     */
+    403: PermissionErrorResponse | ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: BillingErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ValidationResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type CreateBillingPortalError = CreateBillingPortalErrors[keyof CreateBillingPortalErrors];
+
+export type CreateBillingPortalResponses = {
+    /**
+     * Successful Response
+     */
+    200: PortalLink;
+};
+
+export type CreateBillingPortalResponse = CreateBillingPortalResponses[keyof CreateBillingPortalResponses];
+
+export type CreateBillingQuoteData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/billing/quote';
+};
+
+export type CreateBillingQuoteErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Response 403 Createbillingquote
+     *
+     * Forbidden
+     */
+    403: PermissionErrorResponse | ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: BillingErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ValidationResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type CreateBillingQuoteError = CreateBillingQuoteErrors[keyof CreateBillingQuoteErrors];
+
+export type CreateBillingQuoteResponses = {
+    /**
+     * Successful Response
+     */
+    200: AgentQuote;
+};
+
+export type CreateBillingQuoteResponse = CreateBillingQuoteResponses[keyof CreateBillingQuoteResponses];
+
+export type GetBillingStatusData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/billing/status';
+};
+
+export type GetBillingStatusErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Response 403 Getbillingstatus
+     *
+     * Forbidden
+     */
+    403: PermissionErrorResponse | ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: BillingErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ValidationResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type GetBillingStatusError = GetBillingStatusErrors[keyof GetBillingStatusErrors];
+
+export type GetBillingStatusResponses = {
+    /**
+     * Successful Response
+     */
+    200: AgentBillingStatus;
+};
+
+export type GetBillingStatusResponse = GetBillingStatusResponses[keyof GetBillingStatusResponses];
 
 export type ListEvaluationsV1EvaluationsGetData = {
     body?: never;

@@ -1,6 +1,169 @@
 {
   "components": {
     "schemas": {
+      "AgentBillingStatus": {
+        "properties": {
+          "access_active": {
+            "title": "Access Active",
+            "type": "boolean"
+          },
+          "cancelled_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancelled At"
+          },
+          "credits_remaining_cents": {
+            "title": "Credits Remaining Cents",
+            "type": "number"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "fractional_balance_cents": {
+            "title": "Fractional Balance Cents",
+            "type": "number"
+          },
+          "invoices": {
+            "items": {
+              "$ref": "#/components/schemas/InvoiceView"
+            },
+            "title": "Invoices",
+            "type": "array"
+          },
+          "order_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Order Id"
+          },
+          "order_state": {
+            "enum": [
+              "none",
+              "scheduled",
+              "payment_pending",
+              "requires_action",
+              "active",
+              "cancelled"
+            ],
+            "title": "Order State",
+            "type": "string"
+          },
+          "paid_order_confirmed": {
+            "title": "Paid Order Confirmed",
+            "type": "boolean"
+          },
+          "payment_action": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PaymentAction"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "payment_method_ready": {
+            "title": "Payment Method Ready",
+            "type": "boolean"
+          },
+          "pending_setup": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PendingSetup"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "period_ends_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period Ends At"
+          },
+          "period_kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "trial",
+                  "paid"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period Kind"
+          },
+          "suspended": {
+            "title": "Suspended",
+            "type": "boolean"
+          },
+          "trial_available": {
+            "title": "Trial Available",
+            "type": "boolean"
+          },
+          "trial_ends_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trial Ends At"
+          },
+          "usage_above_credits_cents": {
+            "title": "Usage Above Credits Cents",
+            "type": "number"
+          }
+        },
+        "required": [
+          "enabled",
+          "payment_method_ready",
+          "trial_available",
+          "trial_ends_at",
+          "paid_order_confirmed",
+          "cancelled_at",
+          "suspended",
+          "period_ends_at",
+          "period_kind",
+          "credits_remaining_cents",
+          "usage_above_credits_cents",
+          "fractional_balance_cents",
+          "invoices",
+          "order_id",
+          "order_state",
+          "access_active",
+          "pending_setup",
+          "payment_action"
+        ],
+        "title": "AgentBillingStatus",
+        "type": "object"
+      },
       "AgentPermissions": {
         "properties": {
           "agents_can_cancel_plans": {
@@ -25,6 +188,147 @@
           "agents_can_cancel_plans"
         ],
         "title": "AgentPermissions",
+        "type": "object"
+      },
+      "AgentQuote": {
+        "properties": {
+          "affirmation": {
+            "title": "Affirmation",
+            "type": "string"
+          },
+          "cancellation_terms": {
+            "title": "Cancellation Terms",
+            "type": "string"
+          },
+          "credit_expiry": {
+            "title": "Credit Expiry",
+            "type": "string"
+          },
+          "currency": {
+            "const": "usd",
+            "title": "Currency",
+            "type": "string"
+          },
+          "disclosure_text": {
+            "title": "Disclosure Text",
+            "type": "string"
+          },
+          "disclosure_version": {
+            "title": "Disclosure Version",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "first_charge_timing": {
+            "title": "First Charge Timing",
+            "type": "string"
+          },
+          "monthly_credits_cents": {
+            "title": "Monthly Credits Cents",
+            "type": "integer"
+          },
+          "privacy_url": {
+            "title": "Privacy Url",
+            "type": "string"
+          },
+          "privacy_version": {
+            "title": "Privacy Version",
+            "type": "string"
+          },
+          "quote_id": {
+            "title": "Quote Id",
+            "type": "string"
+          },
+          "renewal_terms": {
+            "title": "Renewal Terms",
+            "type": "string"
+          },
+          "subtotal_cents": {
+            "title": "Subtotal Cents",
+            "type": "integer"
+          },
+          "tax_cents": {
+            "title": "Tax Cents",
+            "type": "integer"
+          },
+          "terms_url": {
+            "title": "Terms Url",
+            "type": "string"
+          },
+          "terms_version": {
+            "title": "Terms Version",
+            "type": "string"
+          },
+          "total_cents": {
+            "title": "Total Cents",
+            "type": "integer"
+          },
+          "usage_rate_cents_per_million": {
+            "title": "Usage Rate Cents Per Million",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "quote_id",
+          "subtotal_cents",
+          "tax_cents",
+          "total_cents",
+          "expires_at",
+          "currency",
+          "monthly_credits_cents",
+          "usage_rate_cents_per_million",
+          "credit_expiry",
+          "first_charge_timing",
+          "renewal_terms",
+          "cancellation_terms",
+          "terms_version",
+          "terms_url",
+          "privacy_version",
+          "privacy_url",
+          "disclosure_version",
+          "disclosure_text",
+          "affirmation"
+        ],
+        "title": "AgentQuote",
+        "type": "object"
+      },
+      "BillingErrorDetail": {
+        "properties": {
+          "action_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Action Url"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "title": "BillingErrorDetail",
+        "type": "object"
+      },
+      "BillingErrorResponse": {
+        "properties": {
+          "detail": {
+            "$ref": "#/components/schemas/BillingErrorDetail"
+          }
+        },
+        "required": [
+          "detail"
+        ],
+        "title": "BillingErrorResponse",
         "type": "object"
       },
       "Body_createDeviceCode": {
@@ -77,6 +381,48 @@
           "device_code"
         ],
         "title": "Body_createDeviceToken",
+        "type": "object"
+      },
+      "Cancellation": {
+        "properties": {
+          "cancelled": {
+            "const": true,
+            "title": "Cancelled",
+            "type": "boolean"
+          },
+          "current": {
+            "$ref": "#/components/schemas/AgentBillingStatus"
+          },
+          "order_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Order Id"
+          },
+          "trial_period_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trial Period Id"
+          }
+        },
+        "required": [
+          "cancelled",
+          "order_id",
+          "trial_period_id",
+          "current"
+        ],
+        "title": "Cancellation",
         "type": "object"
       },
       "CheckResult": {
@@ -171,6 +517,12 @@
           "expires_in"
         ],
         "title": "DeviceTokenResponse",
+        "type": "object"
+      },
+      "EmptyInstruction": {
+        "additionalProperties": false,
+        "properties": {},
+        "title": "EmptyInstruction",
         "type": "object"
       },
       "ErrorDetail": {
@@ -481,6 +833,58 @@
         "title": "InvalidField",
         "type": "object"
       },
+      "InvoiceView": {
+        "properties": {
+          "amount_paid_cents": {
+            "title": "Amount Paid Cents",
+            "type": "integer"
+          },
+          "amount_remaining_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Remaining Cents"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "subtotal_cents": {
+            "title": "Subtotal Cents",
+            "type": "integer"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "subtotal_cents",
+          "amount_paid_cents",
+          "amount_remaining_cents",
+          "url"
+        ],
+        "title": "InvoiceView",
+        "type": "object"
+      },
       "OAuthError": {
         "properties": {
           "error": {
@@ -492,6 +896,195 @@
           "error"
         ],
         "title": "OAuthError",
+        "type": "object"
+      },
+      "OrderAccepted": {
+        "properties": {
+          "accepted": {
+            "const": true,
+            "title": "Accepted",
+            "type": "boolean"
+          },
+          "accepted_at": {
+            "format": "date-time",
+            "title": "Accepted At",
+            "type": "string"
+          },
+          "accepted_state": {
+            "anyOf": [
+              {
+                "enum": [
+                  "scheduled",
+                  "payment_pending"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accepted State"
+          },
+          "current": {
+            "$ref": "#/components/schemas/AgentBillingStatus"
+          },
+          "order_id": {
+            "title": "Order Id",
+            "type": "string"
+          },
+          "retryable": {
+            "title": "Retryable",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "accepted",
+          "order_id",
+          "accepted_at",
+          "accepted_state",
+          "current",
+          "retryable"
+        ],
+        "title": "OrderAccepted",
+        "type": "object"
+      },
+      "PaidInstruction": {
+        "additionalProperties": false,
+        "properties": {
+          "paid_order_confirmed": {
+            "title": "Paid Order Confirmed",
+            "type": "boolean"
+          },
+          "quote_id": {
+            "format": "uuid",
+            "title": "Quote Id",
+            "type": "string"
+          },
+          "terms_version": {
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Terms Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "quote_id",
+          "terms_version",
+          "paid_order_confirmed"
+        ],
+        "title": "PaidInstruction",
+        "type": "object"
+      },
+      "PaymentAction": {
+        "properties": {
+          "action_url": {
+            "title": "Action Url",
+            "type": "string"
+          },
+          "reason": {
+            "enum": [
+              "payment_authentication_required",
+              "payment_method_required"
+            ],
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "action_url",
+          "reason"
+        ],
+        "title": "PaymentAction",
+        "type": "object"
+      },
+      "PendingSetup": {
+        "properties": {
+          "action_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Action Url"
+          },
+          "attempt_id": {
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "pending",
+              "complete",
+              "expired",
+              "blocked"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "attempt_id",
+          "state",
+          "action_url",
+          "expires_at"
+        ],
+        "title": "PendingSetup",
+        "type": "object"
+      },
+      "PermissionDenial": {
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "code": {
+            "const": "agent_permission_disabled",
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "retryable": {
+            "const": false,
+            "title": "Retryable",
+            "type": "boolean"
+          },
+          "settings_url": {
+            "const": "/app/settings#agent-permissions",
+            "title": "Settings Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "action",
+          "settings_url",
+          "retryable"
+        ],
+        "title": "PermissionDenial",
+        "type": "object"
+      },
+      "PermissionErrorResponse": {
+        "properties": {
+          "detail": {
+            "$ref": "#/components/schemas/PermissionDenial"
+          }
+        },
+        "required": [
+          "detail"
+        ],
+        "title": "PermissionErrorResponse",
         "type": "object"
       },
       "PhraseResult": {
@@ -522,6 +1115,19 @@
           "where"
         ],
         "title": "PhraseResult",
+        "type": "object"
+      },
+      "PortalLink": {
+        "properties": {
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "title": "PortalLink",
         "type": "object"
       },
       "ProseResult": {
@@ -799,6 +1405,525 @@
         "tags": [
           "client",
           "agent-permissions"
+        ]
+      }
+    },
+    "/v1/billing/cancel": {
+      "post": {
+        "operationId": "cancelBillingPlan",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyInstruction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cancellation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/PermissionErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                  ],
+                  "title": "Response 403 Cancelbillingplan"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "AccountBearer": []
+          }
+        ],
+        "summary": "Cancel Plan",
+        "tags": [
+          "client",
+          "billing"
+        ]
+      }
+    },
+    "/v1/billing/order": {
+      "post": {
+        "operationId": "confirmBillingOrder",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaidInstruction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderAccepted"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/PermissionErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                  ],
+                  "title": "Response 403 Confirmbillingorder"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "AccountBearer": []
+          }
+        ],
+        "summary": "Order",
+        "tags": [
+          "client",
+          "billing"
+        ]
+      }
+    },
+    "/v1/billing/portal": {
+      "post": {
+        "operationId": "createBillingPortal",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalLink"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/PermissionErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                  ],
+                  "title": "Response 403 Createbillingportal"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "AccountBearer": []
+          }
+        ],
+        "summary": "Portal",
+        "tags": [
+          "client",
+          "billing"
+        ]
+      }
+    },
+    "/v1/billing/quote": {
+      "post": {
+        "operationId": "createBillingQuote",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentQuote"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/PermissionErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                  ],
+                  "title": "Response 403 Createbillingquote"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "AccountBearer": []
+          }
+        ],
+        "summary": "Quote",
+        "tags": [
+          "client",
+          "billing"
+        ]
+      }
+    },
+    "/v1/billing/status": {
+      "get": {
+        "operationId": "getBillingStatus",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentBillingStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/PermissionErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                  ],
+                  "title": "Response 403 Getbillingstatus"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "AccountBearer": []
+          }
+        ],
+        "summary": "Status",
+        "tags": [
+          "client",
+          "billing"
         ]
       }
     },

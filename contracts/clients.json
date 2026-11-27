@@ -6,7 +6,12 @@
     "GET /v1/evaluations": "Readlint.list_evaluations",
     "GET /v1/evaluations/{evaluation_id}": "Readlint.get_evaluation",
     "DELETE /v1/evaluations/{evaluation_id}": "Readlint.delete_evaluation",
-    "GET /v1/agent-permissions": "Readlint.get_agent_permissions"
+    "GET /v1/agent-permissions": "Readlint.get_agent_permissions",
+    "GET /v1/billing/status": "Readlint.get_billing_status",
+    "POST /v1/billing/quote": "Readlint.create_billing_quote",
+    "POST /v1/billing/order": "Readlint.confirm_billing_order",
+    "POST /v1/billing/cancel": "Readlint.cancel_billing_plan",
+    "POST /v1/billing/portal": "Readlint.create_billing_portal"
   },
   "cli": {
     "POST /auth/device/code": "login",
@@ -15,7 +20,12 @@
     "GET /v1/evaluations": "list",
     "GET /v1/evaluations/{evaluation_id}": "get",
     "DELETE /v1/evaluations/{evaluation_id}": "delete",
-    "GET /v1/agent-permissions": "agent-permissions get"
+    "GET /v1/agent-permissions": "agent-permissions get",
+    "GET /v1/billing/status": "readlint billing status",
+    "POST /v1/billing/quote": "readlint billing quote",
+    "POST /v1/billing/order": "readlint billing order",
+    "POST /v1/billing/cancel": "readlint billing cancel",
+    "POST /v1/billing/portal": "readlint billing portal"
   },
   "typescript": {
     "POST /auth/device/code": "Readlint.createDeviceCode",
@@ -24,7 +34,12 @@
     "GET /v1/evaluations": "Readlint.listEvaluations",
     "GET /v1/evaluations/{evaluation_id}": "Readlint.getEvaluation",
     "DELETE /v1/evaluations/{evaluation_id}": "Readlint.deleteEvaluation",
-    "GET /v1/agent-permissions": "Readlint.getAgentPermissions"
+    "GET /v1/agent-permissions": "Readlint.getAgentPermissions",
+    "GET /v1/billing/status": "Readlint.getBillingStatus",
+    "POST /v1/billing/quote": "Readlint.createBillingQuote",
+    "POST /v1/billing/order": "Readlint.confirmBillingOrder",
+    "POST /v1/billing/cancel": "Readlint.cancelBillingPlan",
+    "POST /v1/billing/portal": "Readlint.createBillingPortal"
   },
   "node_cli": {
     "POST /auth/device/code": "login",
@@ -33,7 +48,12 @@
     "GET /v1/evaluations": "list",
     "GET /v1/evaluations/{evaluation_id}": "get",
     "DELETE /v1/evaluations/{evaluation_id}": "delete",
-    "GET /v1/agent-permissions": "agent-permissions get"
+    "GET /v1/agent-permissions": "agent-permissions get",
+    "GET /v1/billing/status": "readlint billing status",
+    "POST /v1/billing/quote": "readlint billing quote",
+    "POST /v1/billing/order": "readlint billing order",
+    "POST /v1/billing/cancel": "readlint billing cancel",
+    "POST /v1/billing/portal": "readlint billing portal"
   },
   "python_mcp": {
     "POST /auth/device/code": "Excluded: device sign-in belongs to CLI login; MCP uses a saved login or API key",
@@ -42,7 +62,12 @@
     "GET /v1/evaluations": "list_evaluations",
     "GET /v1/evaluations/{evaluation_id}": "get_evaluation",
     "DELETE /v1/evaluations/{evaluation_id}": "delete_evaluation",
-    "GET /v1/agent-permissions": "Excluded: owner billing policy is read through CLI/SDK; MCP remains evaluation-only"
+    "GET /v1/agent-permissions": "Excluded: owner billing policy is read through CLI/SDK; MCP remains evaluation-only",
+    "GET /v1/billing/status": "Excluded: curated evaluation tools; use the CLI for account billing.",
+    "POST /v1/billing/quote": "Excluded: curated evaluation tools; use the CLI for account billing.",
+    "POST /v1/billing/order": "Excluded: curated evaluation tools; use the CLI for account billing.",
+    "POST /v1/billing/cancel": "Excluded: curated evaluation tools; use the CLI for account billing.",
+    "POST /v1/billing/portal": "Excluded: curated evaluation tools; use the CLI for account billing."
   },
   "node_mcp": {
     "POST /auth/device/code": "Excluded: device sign-in belongs to CLI login; MCP uses a saved login or API key",
@@ -51,6 +76,11 @@
     "GET /v1/evaluations": "list_evaluations",
     "GET /v1/evaluations/{evaluation_id}": "get_evaluation",
     "DELETE /v1/evaluations/{evaluation_id}": "delete_evaluation",
-    "GET /v1/agent-permissions": "Excluded: owner billing policy is read through CLI/SDK; MCP remains evaluation-only"
+    "GET /v1/agent-permissions": "Excluded: owner billing policy is read through CLI/SDK; MCP remains evaluation-only",
+    "GET /v1/billing/status": "Excluded: curated evaluation tools; use the CLI for account billing.",
+    "POST /v1/billing/quote": "Excluded: curated evaluation tools; use the CLI for account billing.",
+    "POST /v1/billing/order": "Excluded: curated evaluation tools; use the CLI for account billing.",
+    "POST /v1/billing/cancel": "Excluded: curated evaluation tools; use the CLI for account billing.",
+    "POST /v1/billing/portal": "Excluded: curated evaluation tools; use the CLI for account billing."
   }
 }

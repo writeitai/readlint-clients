@@ -17,6 +17,9 @@ Commands:
   list                      List evaluations (--limit N --offset N)
   get UUID, delete UUID      Read or delete an evaluation
   agent-permissions get     Read the owner’s agent billing policy
+  billing status|quote|portal  Read billing, get a nonbinding quote or payment link
+  billing order             --quote-id UUID --terms-version VERSION --agree-to-pay --idempotency-key UUID
+  billing cancel            --idempotency-key UUID (retain for recovery)
   login, logout             Approve device login or remove local credentials
   mcp                       Serve four MCP tools over stdio
   version                   Print the installed version
@@ -40,17 +43,19 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
     const {values, positionals} = parseArgs({args: argv, allowPositionals: true, strict: true, options: {
       json: {type: "boolean"}, "api-key": {type: "string"}, "base-url": {type: "string"}, timeout: {type: "string"},
       help: {type: "boolean", short: "h"}, version: {type: "boolean"}, title: {type: "string"},
+      "quote-id": {type: "string"}, "terms-version": {type: "string"}, "agree-to-pay": {type: "boolean"},
       description: {type: "string"}, "idempotency-key": {type: "string"}, limit: {type: "string"}, offset: {type: "string"},
     }});
     if (values.help) { console.log(HELP); return 0; }
     if (values.version) { console.log(`readlint ${VERSION}`); return 0; }
     const [command, argument] = positionals;
-    const takesArgument = ["check", "evaluate", "get", "delete", "agent-permissions"].includes(command);
-    if (!command || !["check", "evaluate", "list", "get", "delete", "login", "logout", "version", "mcp", "agent-permissions"].includes(command) ||
+    const takesArgument = ["check", "evaluate", "get", "delete", "agent-permissions", "billing"].includes(command);
+    if (!command || !["check", "evaluate", "list", "get", "delete", "login", "logout", "version", "mcp", "agent-permissions", "billing"].includes(command) ||
         positionals.length !== (takesArgument ? 2 : 1)) throw new TypeError();
     if (command === "agent-permissions" && argument !== "get") throw new TypeError();
-    for (const flag of ["title", "description", "idempotency-key", "limit", "offset"] as const) {
-      if (values[flag] !== undefined && !(["check", "evaluate"].includes(command) ? ["title", "description", "idempotency-key"] : command === "list" ? ["limit", "offset"] : []).includes(flag)) throw new TypeError();
+    if (command === "billing" && !["status", "quote", "portal", "order", "cancel"].includes(argument)) throw new TypeError();
+    for (const flag of ["title", "description", "idempotency-key", "limit", "offset", "quote-id", "terms-version", "agree-to-pay"] as const) {
+      if (values[flag] !== undefined && !(["check", "evaluate"].includes(command) ? ["title", "description", "idempotency-key"] : command === "list" ? ["limit", "offset"] : command === "billing" && argument === "order" ? ["idempotency-key", "quote-id", "terms-version", "agree-to-pay"] : command === "billing" && argument === "cancel" ? ["idempotency-key"] : []).includes(flag)) throw new TypeError();
     }
     const timeoutMs = values.timeout === undefined ? 120_000 : Math.ceil(Number(values.timeout) * 1000);
     const options: ReadlintOptions = {apiKey: values["api-key"], baseUrl: values["base-url"], timeoutMs};
@@ -76,6 +81,20 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
           for (const field of ["limit", "offset"] as const) if (values[field] !== undefined && !/^\+?\d+$/.test(values[field]!)) throw new TypeError();
           result = await client.listEvaluations({limit: values.limit === undefined ? undefined : Number(values.limit), offset: values.offset === undefined ? 0 : Number(values.offset)});
         } else if (command === "agent-permissions") result = await client.getAgentPermissions();
+        else if (command === "billing") {
+          if (argument === "status") result = await client.getBillingStatus();
+          else if (argument === "quote") result = await client.createBillingQuote();
+          else if (argument === "portal") result = await client.createBillingPortal();
+          else {
+            if (!values["idempotency-key"] || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(values["idempotency-key"])) throw new TypeError();
+            if (argument === "order" && (!values["quote-id"] || !values["terms-version"] || values["agree-to-pay"] !== true)) throw new TypeError();
+            submissionKey = values["idempotency-key"].toLowerCase();
+            activeSubmissionKey = submissionKey;
+            console.error(`Idempotency key: ${submissionKey}`);
+            if (argument === "cancel") result = await client.cancelBillingPlan({idempotencyKey: submissionKey});
+            else result = await client.confirmBillingOrder(values["quote-id"]!, {termsVersion: values["terms-version"]!, paidOrderConfirmed: true, idempotencyKey: submissionKey});
+          }
+        }
         else if (command === "get") result = await client.getEvaluation(argument);
         else { await client.deleteEvaluation(argument); result = {deleted: true, id: argument}; }
       }
@@ -83,11 +102,11 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
     console.log(JSON.stringify(result, null, machine ? undefined : 2));
     return 0;
   } catch (error) {
-    const problem: Record<string, unknown> = error instanceof ReadlintError ? {code: error.code, message: error.message, status: error.status, evaluation_id: error.evaluationId} : {
+    const problem: Record<string, unknown> = error instanceof ReadlintError ? {code: error.code, message: error.message, status: error.status, evaluation_id: error.evaluationId, ...error.details} : {
       code: "invalid_input", message: "Check the command, UTF-8 input file, URL and credential file permissions. Run `readlint --help`.",
     };
     if (submissionKey) problem.idempotency_key = submissionKey;
-    console.error(machine ? JSON.stringify({error: problem}) : `${problem.code}: ${problem.message}`);
+    console.error(machine ? JSON.stringify({error: problem}) : `${problem.code}: ${problem.message}${problem.settings_url ? ` ${problem.action} ${problem.settings_url}` : problem.action_url ? ` ${problem.action_url}` : ""}`);
     return 1;
   }
 }
