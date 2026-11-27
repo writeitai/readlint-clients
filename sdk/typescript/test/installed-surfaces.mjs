@@ -26,6 +26,7 @@ const server = createServer(async (request, response) => {
     return answer(200, fixtures.evaluation);
   }
   if (request.method === "DELETE") { stored = false; return answer(204); }
+  if (url.pathname === "/v1/agent-permissions") return answer(200, fixtures.agent_permissions);
   if (url.pathname === "/v1/evaluations") return answer(200, {...fixtures.page, items: stored ? fixtures.page.items : []});
   return stored ? answer(200, fixtures.evaluation) : answer(404, {detail: {code: "evaluation_not_found"}});
 });
@@ -46,6 +47,8 @@ try {
   const credentials = process.platform === "darwin" ? join(temporary, "Library/Application Support/readlint/credentials.json") : join(temporary, "readlint/credentials.json");
   assert.equal((await stat(credentials)).mode & 0o777, 0o600);
   const saved = JSON.parse(await readFile(credentials, "utf8")); assert.equal(saved.api, baseUrl);
+  result = await run(["agent-permissions", "get", "--json"]);
+  assert.equal(result.code, 0, result.err); assert.deepEqual(JSON.parse(result.out), fixtures.agent_permissions);
   const file = join(temporary, "post.md"); await writeFile(file, "# Article");
   result = await run(["check", file, "--idempotency-key", "cli-once", "--json"]);
   assert.equal(result.code, 0, result.err); assert.equal(JSON.parse(result.out).id, fixtures.evaluation.id); assert.equal(effects, 1); assert.match(result.err, /cli-once/);

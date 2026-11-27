@@ -5,7 +5,8 @@
     "POST /v1/evaluations": "Readlint.evaluate",
     "GET /v1/evaluations": "Readlint.list_evaluations",
     "GET /v1/evaluations/{evaluation_id}": "Readlint.get_evaluation",
-    "DELETE /v1/evaluations/{evaluation_id}": "Readlint.delete_evaluation"
+    "DELETE /v1/evaluations/{evaluation_id}": "Readlint.delete_evaluation",
+    "GET /v1/agent-permissions": "Readlint.get_agent_permissions"
   },
   "cli": {
     "POST /auth/device/code": "login",
@@ -13,7 +14,8 @@
     "POST /v1/evaluations": "evaluate",
     "GET /v1/evaluations": "list",
     "GET /v1/evaluations/{evaluation_id}": "get",
-    "DELETE /v1/evaluations/{evaluation_id}": "delete"
+    "DELETE /v1/evaluations/{evaluation_id}": "delete",
+    "GET /v1/agent-permissions": "agent-permissions get"
   },
   "typescript": {
     "POST /auth/device/code": "Readlint.createDeviceCode",
@@ -21,7 +23,8 @@
     "POST /v1/evaluations": "Readlint.evaluate",
     "GET /v1/evaluations": "Readlint.listEvaluations",
     "GET /v1/evaluations/{evaluation_id}": "Readlint.getEvaluation",
-    "DELETE /v1/evaluations/{evaluation_id}": "Readlint.deleteEvaluation"
+    "DELETE /v1/evaluations/{evaluation_id}": "Readlint.deleteEvaluation",
+    "GET /v1/agent-permissions": "Readlint.getAgentPermissions"
   },
   "node_cli": {
     "POST /auth/device/code": "login",
@@ -29,7 +32,8 @@
     "POST /v1/evaluations": "evaluate",
     "GET /v1/evaluations": "list",
     "GET /v1/evaluations/{evaluation_id}": "get",
-    "DELETE /v1/evaluations/{evaluation_id}": "delete"
+    "DELETE /v1/evaluations/{evaluation_id}": "delete",
+    "GET /v1/agent-permissions": "agent-permissions get"
   },
   "python_mcp": {
     "POST /auth/device/code": "Excluded: device sign-in belongs to CLI login; MCP uses a saved login or API key",
@@ -37,7 +41,8 @@
     "POST /v1/evaluations": "evaluate_article",
     "GET /v1/evaluations": "list_evaluations",
     "GET /v1/evaluations/{evaluation_id}": "get_evaluation",
-    "DELETE /v1/evaluations/{evaluation_id}": "delete_evaluation"
+    "DELETE /v1/evaluations/{evaluation_id}": "delete_evaluation",
+    "GET /v1/agent-permissions": "Excluded: owner billing policy is read through CLI/SDK; MCP remains evaluation-only"
   },
   "node_mcp": {
     "POST /auth/device/code": "Excluded: device sign-in belongs to CLI login; MCP uses a saved login or API key",
@@ -45,6 +50,7 @@
     "POST /v1/evaluations": "evaluate_article",
     "GET /v1/evaluations": "list_evaluations",
     "GET /v1/evaluations/{evaluation_id}": "get_evaluation",
-    "DELETE /v1/evaluations/{evaluation_id}": "delete_evaluation"
+    "DELETE /v1/evaluations/{evaluation_id}": "delete_evaluation",
+    "GET /v1/agent-permissions": "Excluded: owner billing policy is read through CLI/SDK; MCP remains evaluation-only"
   }
 }

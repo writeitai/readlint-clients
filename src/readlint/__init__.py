@@ -4,6 +4,7 @@ from importlib.metadata import version
 
 from readlint.client import Readlint, ReadlintError
 from readlint.types import (
+    AgentPermissions,
     Evaluation,
     EvaluationPage,
     EvaluationReport,
@@ -12,6 +13,7 @@ from readlint.types import (
 
 __version__ = version("readlint")
 __all__ = [
+    "AgentPermissions",
     "Evaluation",
     "EvaluationPage",
     "EvaluationReport",

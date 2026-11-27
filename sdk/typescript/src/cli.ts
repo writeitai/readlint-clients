@@ -16,6 +16,7 @@ Commands:
   check FILE, evaluate FILE  Submit Markdown/MDX (- reads stdin)
   list                      List evaluations (--limit N --offset N)
   get UUID, delete UUID      Read or delete an evaluation
+  agent-permissions get     Read the owner’s agent billing policy
   login, logout             Approve device login or remove local credentials
   mcp                       Serve four MCP tools over stdio
   version                   Print the installed version
@@ -44,9 +45,10 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
     if (values.help) { console.log(HELP); return 0; }
     if (values.version) { console.log(`readlint ${VERSION}`); return 0; }
     const [command, argument] = positionals;
-    const takesArgument = ["check", "evaluate", "get", "delete"].includes(command);
-    if (!command || !["check", "evaluate", "list", "get", "delete", "login", "logout", "version", "mcp"].includes(command) ||
+    const takesArgument = ["check", "evaluate", "get", "delete", "agent-permissions"].includes(command);
+    if (!command || !["check", "evaluate", "list", "get", "delete", "login", "logout", "version", "mcp", "agent-permissions"].includes(command) ||
         positionals.length !== (takesArgument ? 2 : 1)) throw new TypeError();
+    if (command === "agent-permissions" && argument !== "get") throw new TypeError();
     for (const flag of ["title", "description", "idempotency-key", "limit", "offset"] as const) {
       if (values[flag] !== undefined && !(["check", "evaluate"].includes(command) ? ["title", "description", "idempotency-key"] : command === "list" ? ["limit", "offset"] : []).includes(flag)) throw new TypeError();
     }
@@ -73,7 +75,8 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
         } else if (command === "list") {
           for (const field of ["limit", "offset"] as const) if (values[field] !== undefined && !/^\+?\d+$/.test(values[field]!)) throw new TypeError();
           result = await client.listEvaluations({limit: values.limit === undefined ? undefined : Number(values.limit), offset: values.offset === undefined ? 0 : Number(values.offset)});
-        } else if (command === "get") result = await client.getEvaluation(argument);
+        } else if (command === "agent-permissions") result = await client.getAgentPermissions();
+        else if (command === "get") result = await client.getEvaluation(argument);
         else { await client.deleteEvaluation(argument); result = {deleted: true, id: argument}; }
       }
     }

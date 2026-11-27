@@ -76,7 +76,7 @@ Adapted from public `writeitai/mountable` revision
 readlint.com uses an expiring account API key. It has no refresh-token,
 filesystem, gateway, S3 or capture code. Account management, browser sessions
 and browser approval stay in the hosted web app; client methods expose the
-four evaluation operations and device login. Backend changes need coordinated
+four evaluation operations, device login and agent-policy reads. Backend changes need coordinated
 client updates. The response types follow the public `https://readlint.com/v1/openapi.json`
 contract; backend implementation and production inventory stay private.
 

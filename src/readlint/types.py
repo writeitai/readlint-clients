@@ -54,3 +54,9 @@ class Evaluation(EvaluationSummary):
 class EvaluationPage(TypedDict):
     items: list[EvaluationSummary]
     next_offset: int | None
+
+
+class AgentPermissions(TypedDict):
+    agents_can_start_trials: bool
+    agents_can_confirm_paid_orders: bool
+    agents_can_cancel_plans: bool
