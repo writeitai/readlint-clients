@@ -136,3 +136,5 @@ jobs:
           uv run --locked ruff check .
           uv run --locked pyright
       - run: uv run --locked pytest contracts tests
+
+# Temporary cancellation verification; this PR will be closed unmerged.
