@@ -11,6 +11,12 @@ on:
 permissions:
   contents: read
 
+# Only PR checks share a cancelling group. Main, schedule and manual runs are
+# independent, so new runs cannot cancel an earlier main or release run.
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('{0}-{1}', github.workflow, github.ref) || format('{0}-{1}-{2}', github.workflow, github.run_id, github.run_attempt) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   changes:
     name: Changed files
@@ -30,6 +36,11 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: bash scripts/ci_changes.sh
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Cancellation safety tests
+        run: node --test .github/scripts/cancel-pr-runs.test.cjs
       - name: Whitespace
         run: git diff --check HEAD^ HEAD
 
